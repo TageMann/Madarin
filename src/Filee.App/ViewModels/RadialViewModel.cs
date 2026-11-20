@@ -268,7 +268,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
             : loc.Format("donut.files_mixed", counted.Count);
         CenterSubtitle = clickMode ? loc["donut.close_hint"] : null;
         // Mandarin: the hub shows only the size; for files not on disk yet (from a browser) or only folders, the count.
-        CenterPill = DonutMenu.SizeText(counted.Where(p => !folders.Contains(p) && !Filee.Core.Web.WebDrop.IsPlaceholder(p)))
+        CenterPill = SizeText(counted.Where(p => !folders.Contains(p) && !Filee.Core.Web.WebDrop.IsPlaceholder(p)))
             ?? loc.Format("donut.files_mixed", counted.Count);
     }
 
@@ -533,6 +533,27 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     /// slice), so each face shows only what works; a face where nothing works is kept as it is, greyed, to say why.
     /// </summary>
     private bool _hideUnusable;
+
+    /// <summary>Mandarin: "2.2 MB" for these files' total size; null when none of them is a file on disk yet.</summary>
+    internal static string? SizeText(IEnumerable<string> paths)
+    {
+        long total = 0;
+        var any = false;
+        foreach (var path in paths)
+        {
+            try
+            {
+                var info = new FileInfo(path);
+                if (!info.Exists)
+                    continue;
+                total += info.Length;
+                any = true;
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+        return any ? AskedCompression.SizeText(total) : null;
+    }
 
     private Face OnlyUsable(Face face)
     {

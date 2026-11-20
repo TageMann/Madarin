@@ -43,17 +43,12 @@ public sealed partial class DonutMenu
 
     private bool IsDarkGlass => ActualThemeVariant == ThemeVariant.Dark;
 
-    private static IImmutableBrush Linear(params (uint Argb, double Offset)[] stops)
-    {
-        var brush = new LinearGradientBrush
-        {
-            StartPoint = new RelativePoint(0.15, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(0.85, 1, RelativeUnit.Relative),
-        };
-        foreach (var (argb, offset) in stops)
-            brush.GradientStops.Add(new GradientStop(Color.FromUInt32(argb), offset));
-        return brush.ToImmutable();
-    }
+    // Immutable brushes: shared by every donut and free of any thread (a mutable brush belongs to the one that made it).
+    private static IImmutableBrush Linear(params (uint Argb, double Offset)[] stops) =>
+        new ImmutableLinearGradientBrush(
+            [.. stops.Select(s => new ImmutableGradientStop(s.Offset, Color.FromUInt32(s.Argb)))],
+            startPoint: new RelativePoint(0.15, 0, RelativeUnit.Relative),
+            endPoint: new RelativePoint(0.85, 1, RelativeUnit.Relative));
 
     // ── The glass, light and dark ──
     private static readonly IImmutableBrush LightSlice = Linear((0xF5FFFAF5, 0), (0xEBFFE9DA, 0.55), (0xE6FFDCC6, 1));
@@ -177,26 +172,5 @@ public sealed partial class DonutMenu
             for (var i = 0; i < old.Length; i++)
                 widest = Math.Max(widest, SliceFlipWidth(true, i));
         return widest;
-    }
-
-    /// <summary>"2.2 MB" for these files' total size; null when none of them is a file on disk yet.</summary>
-    public static string? SizeText(IEnumerable<string> paths)
-    {
-        long total = 0;
-        var any = false;
-        foreach (var path in paths)
-        {
-            try
-            {
-                var info = new FileInfo(path);
-                if (!info.Exists)
-                    continue;
-                total += info.Length;
-                any = true;
-            }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
-        }
-        return any ? Filee.Core.Presets.AskedCompression.SizeText(total) : null;
     }
 }

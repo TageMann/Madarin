@@ -423,7 +423,8 @@ public sealed partial class DonutMenu
     /// open. Windows passes the mouse and drags through fully transparent pixels of a layered window, so without it the
     /// pointer "leaves" the donut in the gap and the ring folds away (or never opens) before it is reached.
     /// </summary>
-    private static readonly IBrush HitBackdrop = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
+    // Immutable: shared by every donut, and drawn by whichever thread renders (a mutable brush belongs to one).
+    private static readonly IBrush HitBackdrop = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromArgb(1, 0, 0, 0));
 
     /// <summary>
     /// <see cref="HitBackdrop"/> over the donut and the fan of <paramref name="group"/>. The donut has see-through seams
