@@ -101,10 +101,6 @@
         <GradientStop Color="#FFFF2E1A" Offset="0" />
         <GradientStop Color="#FFFF5A1F" Offset="1" />
       </LinearGradientBrush>
-      <LinearGradientBrush x:Key="MandarinAccentButtonBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-        <GradientStop Color="#FFFF9A3C" Offset="0" />
-        <GradientStop Color="#FFF0611A" Offset="1" />
-      </LinearGradientBrush>
     </ResourceDictionary>
   </Styles.Resources>
 
@@ -113,7 +109,7 @@
     <Setter Property="Background" Value="{DynamicResource MandarinWindowBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
   </Style>
-  <Style Selector="Window:not(.material-you) TextBlock.caption, Window:not(.material-you) TextBlock.label, Window:not(.material-you) TextBlock.muted">
+  <Style Selector="Window:not(.material-you) TextBlock.caption:not(.danger):not(.warning), Window:not(.material-you) TextBlock.label:not(.danger):not(.warning), Window:not(.material-you) TextBlock.muted:not(.danger):not(.warning)">
     <Setter Property="Foreground" Value="{DynamicResource MandarinMutedBrush}" />
   </Style>
   <Style Selector="Window:not(.material-you) TextBlock.h1, Window:not(.material-you) TextBlock.h2">
@@ -178,7 +174,7 @@
     <Setter Property="CornerRadius" Value="18" />
   </Style>
 
-  <!-- ───────── Buttons: glass pills; the accent one a warm gradient ───────── -->
+  <!-- ───────── Buttons: glass panes; the accent one keeps the accent colour and its readable label ───────── -->
   <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round) /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource MandarinControlBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
@@ -190,16 +186,6 @@
   <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round):pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource MandarinControlPressedBrush}" />
   </Style>
-  <Style Selector="Window:not(.material-you) Button.accent:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource MandarinAccentButtonBrush}" />
-    <Setter Property="BorderBrush" Value="#59FFFFFF" />
-    <Setter Property="Foreground" Value="White" />
-  </Style>
-  <Style Selector="Window:not(.material-you) Button.accent:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource MandarinAccentButtonBrush}" />
-    <Setter Property="Opacity" Value="0.92" />
-  </Style>
-
   <!-- The round close button at the top left of a panel -->
   <Style Selector="Button.close-round">
     <Setter Property="Width" Value="32" />

@@ -21,6 +21,8 @@ jobs:
   check:
     name: Build and test (Linux)
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     timeout-minutes: 120
     defaults:
       run:
@@ -41,8 +43,15 @@ jobs:
       - name: Fonts
         run: ./build/fetch-fonts.ps1
 
+      - name: Restore engine downloads
+        uses: actions/cache@v4
+        with:
+          path: build/.cache/portable-downloads
+          key: portable-engines-linux-x64-${{ hashFiles('src/Filee.Engines/Infrastructure/engines.json') }}
+
       - name: Build
         run: |
+          ./build/fetch-portable-engines.ps1 -Runtime linux-x64 -Destination engines
           dotnet build Filee.slnx -c Release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -70,6 +79,38 @@ jobs:
             TestResults/
             tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
           if-no-files-found: ignore
+
+      # The screenshots and a list of failed tests, on a branch of their own (screenshots), so they can be looked at
+      # with git alone.
+      - name: Publish screenshots and failures
+        if: always()
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          out="$RUNNER_TEMP/shots"; mkdir -p "$out"
+          shots=tests/Filee.App.Tests/bin/Release/net10.0/screenshots
+          if [ -d "$shots" ]; then
+            cp "$shots"/mandarin-*.png "$out"/ 2>/dev/null || true
+            for name in page-general-en page-home-en page-theme-en page-toolbar-en; do cp "$shots/$name.png" "$out"/ 2>/dev/null || true; done
+          fi
+          python3 - "$out/failures.txt" <<'PY'
+          import glob, sys, xml.etree.ElementTree as ET
+          ns = '{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}'
+          lines = []
+          for trx in sorted(glob.glob('TestResults/*.trx')):
+              root = ET.parse(trx).getroot()
+              for r in root.iter(ns + 'UnitTestResult'):
+                  if r.get('outcome') == 'Failed':
+                      msg = r.find(f'{ns}Output/{ns}ErrorInfo/{ns}Message')
+                      st = r.find(f'{ns}Output/{ns}ErrorInfo/{ns}StackTrace')
+                      lines.append(f"### {r.get('testName')}\n{(msg.text if msg is not None else '')[:1500]}\n{(st.text if st is not None else '')[:1200]}\n")
+          open(sys.argv[1], 'w').write('\n'.join(lines) or 'No failed tests.\n')
+          PY
+          cd "$out"
+          git init -q && git checkout -q -b screenshots && git add -A
+          git -c user.email=ci@mandarin -c user.name=CI commit -qm "Screenshots and failures from ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" screenshots
 
       - name: Fail when a test failed
         if: steps.test.outcome == 'failure'

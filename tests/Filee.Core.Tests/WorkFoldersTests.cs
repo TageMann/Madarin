@@ -29,7 +29,7 @@ public class WorkFoldersTests
         Assert.Equal(Path.Combine(home, ".cache", "filee"), WorkFolders.UnixRoot(null, home, macOS: false));
         Assert.Equal(Path.Combine(cache, "filee"), WorkFolders.UnixRoot(cache, home, macOS: false));
         Assert.Equal(Path.Combine(home, ".cache", "filee"), WorkFolders.UnixRoot("relative/cache", home, macOS: false)); // ignored, as XDG says
-        Assert.Equal(Path.Combine(home, "Library", "Caches", "Filee"), WorkFolders.UnixRoot(cache, home, macOS: true));
+        Assert.Equal(Path.Combine(home, "Library", "Caches", "Mandarin"), WorkFolders.UnixRoot(cache, home, macOS: true));
         Assert.Null(WorkFolders.UnixRoot(null, "", macOS: false));
         Assert.Null(WorkFolders.UnixRoot("", null, macOS: true));
     }

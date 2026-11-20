@@ -1,6 +1,6 @@
 // The Engines page's package cards (#867): every engine that works is "Ready", with a line saying where it comes from
-// (Filee's download, a copy on this computer, the user's own copy); a copy on the computer that isn't used because
-// Filee's download is installed is offered instead, once it runs, and checked again before the download goes; Filee's
+// (Mandarin's download, a copy on this computer, the user's own copy); a copy on the computer that isn't used because
+// Mandarin's download is installed is offered instead, once it runs, and checked again before the download goes; Filee's
 // download is only offered over a copy that is older or whose version can't be read, once checked; versions are read in
 // the background; and warnings show in the warning colour.
 
@@ -123,7 +123,7 @@ public sealed class EngineStatusTests : IDisposable
     }
 
     /// <summary>
-    /// A download service whose engines folder is a folder of the test's, with Filee's download of Pandoc "installed"
+    /// A download service whose engines folder is a folder of the test's, with Mandarin's download of Pandoc "installed"
     /// there (its marker) and a copy of Pandoc on the PATH, whose version is <see cref="_systemVersion"/> (the tested
     /// one to begin with).
     /// </summary>
@@ -175,7 +175,7 @@ public sealed class EngineStatusTests : IDisposable
 
         state.Status = EnginePackageStatus.Installed;
         Assert.Equal("Ready", state.StatusText);
-        Assert.Equal($"Filee's download · version {state.Version} · {EnginePackageState.FormatBytes(state.Package.InstalledSize)} on disk", state.SourceText);
+        Assert.Equal($"Mandarin's download · version {state.Version} · {EnginePackageState.FormatBytes(state.Package.InstalledSize)} on disk", state.SourceText);
 
         state.OwnCopyFolder = "/opt/homebrew/bin";
         state.FromSystem = true;
@@ -206,7 +206,7 @@ public sealed class EngineStatusTests : IDisposable
         Assert.Equal("Ready", state.StatusText);
         Assert.Equal($"New version {state.Version}", state.UpdateText);
         // The version the card would name is the new one, not the one on disk: it is left out of the source line.
-        Assert.Equal($"Filee's download · {EnginePackageState.FormatBytes(state.Package.InstalledSize)} on disk", state.SourceText);
+        Assert.Equal($"Mandarin's download · {EnginePackageState.FormatBytes(state.Package.InstalledSize)} on disk", state.SourceText);
     }
 
     [AvaloniaFact]
@@ -218,7 +218,7 @@ public sealed class EngineStatusTests : IDisposable
 
         state.Status = EnginePackageStatus.Installed;
         Assert.Equal((true, false, false), Tone());
-        state.IsOutdated = true; // Filee's download has a new version
+        state.IsOutdated = true; // Mandarin's download has a new version
         Assert.Equal((false, true, false), Tone());
         state.IsOutdated = false;
 
@@ -292,12 +292,12 @@ public sealed class EngineStatusTests : IDisposable
 
         state.Status = EnginePackageStatus.Installed;
         Assert.True(state.HasOtherCopy);
-        Assert.Equal("/Applications/calibre.app · version 9.15 (Filee's download would be removed)", state.OtherCopyText);
+        Assert.Equal("/Applications/calibre.app · version 9.15 (Mandarin's download would be removed)", state.OtherCopyText);
 
         // One that starts without telling its version (an FFmpeg nightly, Upscayl) is offered too.
         state.OtherCopyVersion = null;
         Assert.True(state.HasOtherCopy);
-        Assert.Equal("/Applications/calibre.app (Filee's download would be removed)", state.OtherCopyText);
+        Assert.Equal("/Applications/calibre.app (Mandarin's download would be removed)", state.OtherCopyText);
 
         // One that didn't start (or hasn't been tried yet) isn't: it may not work.
         state.OtherCopyRuns = false;
@@ -436,7 +436,7 @@ public sealed class EngineStatusTests : IDisposable
         Assert.Null(pandoc.CopyVersion);
         Assert.Null(pandoc.OwnCopyFolder);
         Assert.False(pandoc.IsOutdated);
-        Assert.StartsWith("Filee's download", pandoc.SourceText);
+        Assert.StartsWith("Mandarin's download", pandoc.SourceText);
         Assert.Equal(system, pandoc.OtherCopyFolder);
         WaitFor(() => pandoc.HasOtherCopy);
     }
@@ -725,7 +725,7 @@ public sealed class EngineStatusTests : IDisposable
             bool Shown(string? text) => window.GetVisualDescendants().OfType<TextBlock>()
                 .Any(t => ReferenceEquals(t.DataContext, pandoc) && t.Text == text && t.IsEffectivelyVisible);
 
-            // Filee's download, up to date: Ready in green, no size, another copy can be picked.
+            // Mandarin's download, up to date: Ready in green, no size, another copy can be picked.
             Assert.True(Dot());
             Assert.True(Tag("ok"));
             Assert.False(Dot("WarningBrush"));

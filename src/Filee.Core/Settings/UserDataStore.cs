@@ -176,7 +176,7 @@ public sealed class UserDataStore
             Settings.MandarinLayoutApplied = true;
             customChanged = File.Exists(SettingsPath);
         }
-        if (!Settings.OrangeAccentApplied)
+        if (mandarinProfile && !Settings.OrangeAccentApplied)
         {
             Settings.Theme ??= new ThemeSettings();
             if (string.Equals(Settings.Theme.Accent, AppSettings.PreviousDefaultAccent, StringComparison.OrdinalIgnoreCase)

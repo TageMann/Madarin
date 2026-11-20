@@ -146,11 +146,12 @@
       </Border>
 
       <!-- The look -->
-      <ScrollViewer Grid.Row="3" MaxHeight="400" Margin="0,4,0,0">
-        <StackPanel Spacing="14" Margin="26,6,26,10">
+      <Border Grid.Row="3" Classes="card" Margin="18,6,18,8" Padding="0" CornerRadius="18">
+      <ScrollViewer MaxHeight="380">
+        <StackPanel Spacing="14" Margin="18,14,24,14">
           <!-- Background -->
           <Grid ColumnDefinitions="118,*">
-            <TextBlock x:Name="BackgroundLabel" Classes="section" Text="{DynamicResource background.background}" Margin="0,6,0,0" VerticalAlignment="Top" />
+            <TextBlock x:Name="BackgroundLabel" Classes="section" TextWrapping="Wrap" Text="{DynamicResource background.background}" Margin="0,6,0,0" VerticalAlignment="Top" />
             <StackPanel Grid.Column="1" Spacing="10">
               <Border Classes="segments" HorizontalAlignment="Stretch">
                 <UniformGrid Rows="1">
@@ -231,10 +232,10 @@
 
           <!-- Format -->
           <Grid ColumnDefinitions="118,*">
-            <TextBlock Classes="section" Text="{DynamicResource background.format}" Margin="0,7,0,0" VerticalAlignment="Top" />
+            <TextBlock Classes="section" TextWrapping="Wrap" Text="{DynamicResource background.format}" Margin="0,7,0,0" VerticalAlignment="Top" />
             <StackPanel Grid.Column="1" Spacing="8">
               <Border Classes="segments">
-                <UniformGrid Rows="1">
+                <UniformGrid Columns="4">
               <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
                          IsChecked="{Binding IsAuto, Mode=OneWay}" Content="{DynamicResource background.auto}"
                          Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Auto}" />
@@ -278,61 +279,61 @@
           <!-- The picture on its canvas: its size and place, margin, corners, shadow -->
           <StackPanel Spacing="4">
             <TextBlock Classes="section" Text="{DynamicResource background.placement}" Margin="0,0,0,2" />
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.size}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.size}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="{Binding MinScale}" Maximum="100" Value="{Binding PictureScale}" TickFrequency="1" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.size}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding PictureScaleText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding PictureScaleText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="scale" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
             </Button>
           </Grid>
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.horizontal}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.horizontal}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding OffsetX}" TickFrequency="1" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.horizontal}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding OffsetXText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding OffsetXText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="x" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
             </Button>
           </Grid>
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.vertical}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.vertical}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding OffsetY}" TickFrequency="1" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.vertical}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding OffsetYText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding OffsetYText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="y" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
             </Button>
           </Grid>
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.padding}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.padding}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="0" Maximum="{Binding MaxPadding}" Value="{Binding Padding}" TickFrequency="1" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.padding}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding PaddingText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding PaddingText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="padding" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
             </Button>
           </Grid>
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.corners}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.corners}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="0" Maximum="{Binding MaxCorners}" Value="{Binding Corners}" TickFrequency="1" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.corners}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding CornersText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding CornersText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="corners" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
             </Button>
           </Grid>
-          <Grid ColumnDefinitions="118,*,62,30" Margin="0,1">
-            <TextBlock Grid.Column="0" Text="{DynamicResource background.shadow}" VerticalAlignment="Center" FontSize="13.5" />
+          <Grid ColumnDefinitions="118,*,Auto,30" Margin="0,1">
+            <TextBlock Grid.Column="0" TextWrapping="Wrap" Margin="0,0,8,0" Text="{DynamicResource background.shadow}" VerticalAlignment="Center" FontSize="13.5" />
             <Slider Grid.Column="1" Minimum="0" Maximum="{Binding MaxShadow}" Value="{Binding Shadow}" TickFrequency="5" IsSnapToTickEnabled="True"
                     VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource background.shadow}" />
-            <TextBlock Grid.Column="2" Classes="value" Text="{Binding ShadowText}" />
+            <TextBlock Grid.Column="2" Classes="value" MinWidth="56" Margin="8,0,0,0" TextAlignment="Right" Text="{Binding ShadowText}" />
             <Button Grid.Column="3" Classes="reset" Command="{Binding ResetValueCommand}" CommandParameter="shadow" HorizontalAlignment="Right"
                     ToolTip.Tip="{DynamicResource crop.reset}" AutomationProperties.Name="{DynamicResource crop.reset}">
               <PathIcon Width="13" Height="13" Data="{StaticResource Mandarin.Reset}" />
@@ -342,6 +343,7 @@
           <TextBlock Classes="caption" Text="{DynamicResource background.keys}" TextWrapping="Wrap" />
         </StackPanel>
       </ScrollViewer>
+      </Border>
 
       <!-- Skip and Save -->
       <StackPanel Grid.Row="4" Spacing="10">

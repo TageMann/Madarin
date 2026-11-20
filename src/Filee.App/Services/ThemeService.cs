@@ -183,6 +183,9 @@ public sealed class ThemeService(IPlatformServices platform)
         foreach (var (name, value) in colors ?? new Dictionary<string, string>())
             if (CustomBrushKeys.TryGetValue(name, out var key) && Color.TryParse(value, out var color))
                 dictionary[key] = new SolidColorBrush(color);
+        // Mandarin: a theme.json page colour is the window's backdrop too, in place of the warm gradient.
+        if (dictionary.TryGetValue("PageBrush", out var page))
+            dictionary["MandarinWindowBrush"] = page;
         // Plain buttons are the surface they sit on (#524): also under Material You and a theme.json's own surface.
         if (dictionary.TryGetValue("SurfaceBrush", out var surface))
             dictionary["ButtonBackground"] = surface;

@@ -165,7 +165,7 @@ public sealed class BackgroundWindowTests : IDisposable
     {
         var tool = Tool();
         var vm = new BackgroundViewModel(paths, tool, AppHost.Get<ILocalizer>(), AppHost.Get<UserDataStore>(), export);
-        var window = new BackgroundWindow { DataContext = vm, Width = 1040, Height = 720, FlowDirection = direction };
+        var window = new BackgroundWindow { DataContext = vm, Width = 800, Height = 1000, FlowDirection = direction };
         window.Show();
         Wait(() => ((vm.IsPreviewCurrent && !vm.IsBusy) || vm.IsFinished));
         RenderTests.Pump();
@@ -1135,13 +1135,13 @@ public sealed class BackgroundWindowTests : IDisposable
         try
         {
             vm.Shadow = 80;
-            Assert.Equal("Sunset", vm.Gradients[0].Name);
+            Assert.Equal("Sunset", vm.Gradients[3].Name);
             Assert.Equal("Strong", vm.ShadowText);
             languages.SetLanguage("ko");
             Dispatcher.UIThread.RunJobs();
             var loc = AppHost.Get<ILocalizer>();
-            Assert.Equal(loc["background.gradient_sunset"], vm.Gradients[0].Name);
-            Assert.Equal("노을", vm.Gradients[0].Name);
+            Assert.Equal(loc["background.gradient_sunset"], vm.Gradients[3].Name);
+            Assert.Equal("노을", vm.Gradients[3].Name);
             Assert.Equal(loc["background.shadow_strong"], vm.ShadowText);
             Assert.Equal(loc["background.no_picture"], vm.PictureName);
             Assert.Equal(loc["background.save_next"], window.FindControl<Button>("SaveButton")!.Content);
