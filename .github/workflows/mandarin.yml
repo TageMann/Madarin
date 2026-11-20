@@ -18,6 +18,65 @@ permissions:
   contents: read
 
 jobs:
+  check:
+    name: Build and test (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Linux desktop dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1 libfreetype6 libx11-6 libice6 libsm6 libxrandr2 libxkbcommon0 libxi6 libxtst6 libxt6 xvfb fonts-noto-cjk
+
+      - name: Fonts
+        run: ./build/fetch-fonts.ps1
+
+      - name: Build
+        run: |
+          dotnet build Filee.slnx -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test
+        id: test
+        continue-on-error: true
+        run: |
+          $failed = @()
+          foreach ($project in @('Filee.Core.Tests', 'Filee.Engines.Tests', 'Filee.Cli.Tests', 'Filee.App.Tests')) {
+            $arguments = @('test', "tests/$project/$project.csproj", '--no-build', '-c', 'Release',
+              '--logger', "trx;LogFileName=$project.trx", '--results-directory', 'TestResults',
+              '--filter', 'FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Every_native_import_exists_in_the_dll_it_names&FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Reading_the_registered_package_never_throws')
+            if ($project -eq 'Filee.App.Tests') { $arguments += @('--blame-hang-timeout', '5m') }
+            xvfb-run -a env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 dotnet @arguments
+            if ($LASTEXITCODE -ne 0) { $failed += $project }
+          }
+          if ($failed.Count -gt 0) { Write-Host "Failed: $($failed -join ', ')"; exit 1 }
+
+      - name: Upload test results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-test-results-and-screenshots
+          path: |
+            TestResults/
+            tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
+          if-no-files-found: ignore
+
+      - name: Fail when a test failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1
+
+  # The app itself: built on a Mac (the disk image and code signing need macOS). Waits for no test run, so a slow
+  # queue for Mac runners doesn't hold up the tests above.
   mac:
     name: Mandarin.app (Apple silicon)
     runs-on: macos-15
@@ -48,28 +107,6 @@ jobs:
           path: build/.cache/portable-downloads
           key: portable-engines-osx-arm64-${{ hashFiles('src/Filee.Engines/Infrastructure/engines.json') }}
 
-      - name: Build
-        run: |
-          ./build/fetch-portable-engines.ps1 -Runtime osx-arm64 -Destination engines
-          dotnet build Filee.slnx -c Release
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      # Every test project runs even when one fails, so one run shows everything; the job fails at the end if any did.
-      - name: Test
-        id: test
-        continue-on-error: true
-        run: |
-          $failed = @()
-          foreach ($project in @('Filee.Core.Tests', 'Filee.Engines.Tests', 'Filee.Platform.Tests', 'Filee.Cli.Tests', 'Filee.App.Tests')) {
-            $arguments = @('test', "tests/$project/$project.csproj", '--no-build', '-c', 'Release',
-              '--logger', "trx;LogFileName=$project.trx", '--results-directory', 'TestResults',
-              '--filter', 'FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Every_native_import_exists_in_the_dll_it_names&FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Reading_the_registered_package_never_throws')
-            if ($project -eq 'Filee.App.Tests') { $arguments += @('--blame-hang-timeout', '5m') }
-            dotnet @arguments
-            if ($LASTEXITCODE -ne 0) { $failed += $project }
-          }
-          if ($failed.Count -gt 0) { Write-Host "Failed: $($failed -join ', ')"; exit 1 }
-
       - name: Build Mandarin.app and its disk image
         run: ./build/build-portable.ps1 -Runtime osx-arm64 -SkipFonts
 
@@ -84,17 +121,3 @@ jobs:
             Releases/*-osx-arm64.dmg
             Releases/*-osx-arm64-SHA256SUMS.txt
           if-no-files-found: error
-
-      - name: Upload test results and screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-and-screenshots
-          path: |
-            TestResults/
-            tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
-          if-no-files-found: ignore
-
-      - name: Fail when a test failed
-        if: steps.test.outcome == 'failure'
-        run: exit 1
