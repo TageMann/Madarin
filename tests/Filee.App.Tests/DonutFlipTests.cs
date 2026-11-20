@@ -846,7 +846,8 @@ public class DonutFlipTests
         Assert.Equal(expected, donut.ActiveIndex);
         // What that slice does with these files, or why it can't (an engine to download).
         var there = vm.Items[expected];
-        Assert.Equal(there.IsEnabled ? AppHost.Get<ILocalizer>().Format("donut.drop_to", there.Label) : there.DisabledReason, vm.CenterSubtitle);
+        // The hint names it in full ("Edit pictures"), as the slice may show a short name ("Edit").
+        Assert.Equal(there.IsEnabled ? AppHost.Get<ILocalizer>().Format("donut.drop_to", there.FullName ?? there.Label) : there.DisabledReason, vm.CenterSubtitle);
         window.Close();
     });
 
