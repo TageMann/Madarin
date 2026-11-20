@@ -41,7 +41,7 @@
         </Panel>
       </Border>
 
-      <ScrollViewer Grid.Row="3">
+      <ScrollViewer x:Name="LookScroll" Grid.Row="3">
         <StackPanel Margin="26,10,26,14" Spacing="14">
           <!-- Light -->
           <StackPanel Spacing="4">
@@ -52,7 +52,7 @@
             </DockPanel>
               <Grid ColumnDefinitions="110,*,78,30">
                 <TextBlock Text="{DynamicResource image_edit.exposure}" VerticalAlignment="Center" FontSize="13.5" />
-                <Slider Grid.Column="1" Minimum="-3" Maximum="3" Value="{Binding Exposure}" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                <Slider x:Name="ExposureSlider" Grid.Column="1" Minimum="-3" Maximum="3" Value="{Binding Exposure}" TickFrequency="0.05" IsSnapToTickEnabled="True"
                         SmallChange="0.05" LargeChange="0.5" VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource image_edit.exposure}" />
                 <TextBlock Grid.Column="2" Classes="value" Text="{Binding ExposureText}" />
                 <Button Grid.Column="3" Classes="reset" Command="{Binding ResetLightCommand}" CommandParameter="exposure" HorizontalAlignment="Right"

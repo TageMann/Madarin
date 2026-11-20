@@ -489,6 +489,7 @@
   "preset.group_flip": "Espelhar",
   "preset.annotate": "Anotar",
   "preset.background": "Adicionar fundo",
+  "preset.background.donut": "Adicionar fundo",
   "preset.metadata": "Metadados",
   "preset.flip_horizontal": "Espelhar na horizontal",
   "preset.flip_horizontal.short": "Horizontal",

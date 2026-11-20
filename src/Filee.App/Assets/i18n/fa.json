@@ -493,6 +493,7 @@
   "preset.group_flip": "وارونه‌سازی",
   "preset.annotate": "یادداشت‌گذاری",
   "preset.background": "افزودن پس‌زمینه",
+  "preset.background.donut": "افزودن پس‌زمینه",
   "preset.metadata": "متادیتا",
   "preset.flip_horizontal": "وارونه افقی",
   "preset.flip_horizontal.short": "افقی",

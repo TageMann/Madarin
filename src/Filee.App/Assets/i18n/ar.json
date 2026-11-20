@@ -479,6 +479,7 @@
   "preset.group_flip": "انعكاس",
   "preset.annotate": "تعليقات",
   "preset.background": "إضافة خلفية",
+  "preset.background.donut": "إضافة خلفية",
   "preset.metadata": "البيانات الوصفية",
   "preset.flip_horizontal": "انعكاس أفقي",
   "preset.flip_horizontal.short": "أفقي",

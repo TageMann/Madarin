@@ -489,6 +489,7 @@
   "preset.group_flip": "Lật",
   "preset.annotate": "Chú thích",
   "preset.background": "Thêm nền",
+  "preset.background.donut": "Thêm nền",
   "preset.metadata": "Siêu dữ liệu",
   "preset.flip_horizontal": "Lật ngang",
   "preset.flip_horizontal.short": "Ngang",

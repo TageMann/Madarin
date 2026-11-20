@@ -1432,7 +1432,7 @@ public sealed partial class DonutMenu : Control
             shapes.Add(mid);
             shapes.Add(span);
         }
-        var key = new LabelPlanKey(items, center, inner, outer, shapes.ToHashCode(), scale, LabelScale, ShowCaptions, DefaultShow);
+        var key = new LabelPlanKey(items, center, inner, outer, HashCode.Combine(shapes.ToHashCode(), UppercaseLabels), scale, LabelScale, ShowCaptions, DefaultShow);
         if (_labelPlans.TryGetValue(key, out var plan))
             return plan;
         if (_labelPlans.Count >= MaxCachedPlans)
@@ -1441,7 +1441,7 @@ public sealed partial class DonutMenu : Control
         {
             var (mid, span) = slice(i);
             // The slices of this ring only: the outgoing face of a flip, or a group's ring, compares among its own.
-            return new SliceLabelInput(item.Label, item.Caption, item.IconKey, item.Show ?? DefaultShow,
+            return new SliceLabelInput(UppercaseLabels ? item.Label.ToUpper(CultureInfo.CurrentUICulture) : item.Label, item.Caption, item.IconKey, item.Show ?? DefaultShow,
                 new SliceShape(center, inner, outer, mid, span, SliceGap, item.IsGroup ? ChevronIn : 0, item.IsGroup ? ChevronReach : 0),
                 item.Direction ?? LabelDirection.Auto,
                 NeedsCaption: item.KeepsCaption || SharesItsName(item, items));

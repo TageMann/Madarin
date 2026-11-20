@@ -479,6 +479,7 @@
   "preset.group_flip": "Voltear",
   "preset.annotate": "Anotar",
   "preset.background": "Añadir fondo",
+  "preset.background.donut": "Añadir fondo",
   "preset.metadata": "Metadatos",
   "preset.flip_horizontal": "Volteo horizontal",
   "preset.flip_horizontal.short": "Horizontal",

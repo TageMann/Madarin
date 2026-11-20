@@ -478,6 +478,7 @@
 "preset.group_flip": "Capovolgi",
 "preset.annotate": "Annota",
 "preset.background": "Aggiungi sfondo",
+"preset.background.donut": "Aggiungi sfondo",
 "preset.metadata": "Metadati",
 "preset.flip_horizontal": "Capovolgi orizzontalmente",
 "preset.flip_horizontal.short": "Orizzontale",

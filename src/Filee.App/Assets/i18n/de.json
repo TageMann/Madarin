@@ -479,6 +479,7 @@
   "preset.group_flip": "Spiegeln",
   "preset.annotate": "Beschriften",
   "preset.background": "Hintergrund hinzufügen",
+  "preset.background.donut": "Hintergrund hinzufügen",
   "preset.metadata": "Metadaten",
   "preset.flip_horizontal": "Horizontal spiegeln",
   "preset.flip_horizontal.short": "Horizontal",

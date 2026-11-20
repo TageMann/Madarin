@@ -479,6 +479,7 @@
   "preset.group_flip": "พลิกภาพ",
   "preset.annotate": "ใส่คำอธิบาย",
   "preset.background": "เพิ่มพื้นหลัง",
+  "preset.background.donut": "เพิ่มพื้นหลัง",
   "preset.metadata": "เมทาดาทา",
   "preset.flip_horizontal": "พลิกแนวนอน",
   "preset.flip_horizontal.short": "แนวนอน",

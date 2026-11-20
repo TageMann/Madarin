@@ -493,6 +493,7 @@
   "preset.group_flip": "উল্টান",
   "preset.annotate": "টীকা যোগ করুন",
   "preset.background": "ব্যাকগ্রাউন্ড যোগ করুন",
+  "preset.background.donut": "ব্যাকগ্রাউন্ড যোগ করুন",
   "preset.metadata": "মেটাডেটা",
   "preset.flip_horizontal": "অনুভূমিকভাবে উল্টান",
   "preset.flip_horizontal.short": "অনুভূমিক",

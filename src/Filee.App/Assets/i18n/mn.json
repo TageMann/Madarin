@@ -478,6 +478,7 @@
   "preset.group_flip": "Толин тусгал",
   "preset.annotate": "Тэмдэглэгээ хийх",
   "preset.background": "Арын дэвсгэр нэмэх",
+  "preset.background.donut": "Арын дэвсгэр нэмэх",
   "preset.metadata": "Мета өгөгдөл",
   "preset.flip_horizontal": "Хэвтээгээр эргүүлэх",
   "preset.flip_horizontal.short": "Хэвтээ",

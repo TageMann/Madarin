@@ -35,6 +35,12 @@ public sealed partial class DonutMenu
     public bool GlassStyle { get => GetValue(GlassStyleProperty); set => SetValue(GlassStyleProperty, value); }
     public string? CenterPill { get => GetValue(CenterPillProperty); set => SetValue(CenterPillProperty, value); }
 
+    /// <summary>Mandarin: slice names in capitals ("ADD BG"), as on the design's wheel.</summary>
+    public static readonly StyledProperty<bool> UppercaseLabelsProperty =
+        AvaloniaProperty.Register<DonutMenu, bool>(nameof(UppercaseLabels));
+
+    public bool UppercaseLabels { get => GetValue(UppercaseLabelsProperty); set => SetValue(UppercaseLabelsProperty, value); }
+
     /// <summary>How far the glass slices sit inside the plate's rim, in pixels at this size.</summary>
     internal double GlassInset => GlassStyle ? 7 * DonutScale : 0;
 
@@ -142,7 +148,8 @@ public sealed partial class DonutMenu
 
         var scale = DonutScale;
         var typeface = new Typeface(GetValue(Avalonia.Controls.Documents.TextElement.FontFamilyProperty), FontStyle.Normal, FontWeight.SemiBold);
-        var text = CachedText(CenterPill!, typeface, 14 * scale, SliceLabelBrush, radius * 1.8);
+        var text = new FormattedText(CenterPill!, System.Globalization.CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            typeface, 14 * scale, SliceLabelBrush);
         var width = Math.Min(text.Width + 30 * scale, radius * 1.9);
         var height = text.Height + 14 * scale;
         var pill = new Rect(center.X - width / 2, center.Y - height / 2, width, height);

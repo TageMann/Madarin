@@ -170,9 +170,11 @@ public sealed class UserDataStore
             {
                 images.PresetIds = [.. MandarinImageActions.Where(id => FindPreset(id) is not null)];
                 images.BackPresetIds = [.. MandarinImageFormats.Where(id => FindPreset(id) is not null)];
+                images.LabelShow = LabelShow.IconAndText;
                 libraryChanged = true;
             }
             Settings.HideUnusableSlices = true;
+            Settings.Donut.ShowCaptions = false;
             Settings.MandarinLayoutApplied = true;
             customChanged = File.Exists(SettingsPath);
         }

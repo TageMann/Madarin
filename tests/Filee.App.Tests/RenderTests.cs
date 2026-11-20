@@ -1163,10 +1163,11 @@ public class RenderTests
             Assert.Equal(Avalonia.Media.Color.Parse("#F6F5F1"), BrushColor(window, "PageBrush", Avalonia.Styling.ThemeVariant.Light));
             Save(window, "page-theme-custom.png");
 
-            // Applying without a theme file (deleted, or emptied) restores the built-in colours on the open window.
+            // Applying without a theme file (deleted, or emptied) restores the built-in look on the open window: Mandarin's
+            // warm gradient.
             service.Apply(dark, "en");
             Pump();
-            Assert.Equal(Avalonia.Media.Color.Parse("#1B1B19"), Assert.IsAssignableFrom<Avalonia.Media.ISolidColorBrush>(window.Background).Color);
+            Assert.IsAssignableFrom<Avalonia.Media.ILinearGradientBrush>(window.Background);
             window.Close();
 
             service.Apply(dark, "en", custom);

@@ -42,6 +42,7 @@
     <c:DonutMenu x:Name="Donut"
                  Opacity="{Binding DonutOpacity}"
                  GlassStyle="True"
+                 UppercaseLabels="True"
                  CenterPill="{Binding CenterPill}"
                  Items="{Binding Items}"
                  CenterTitle="{Binding CenterTitle}"

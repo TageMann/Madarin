@@ -479,6 +479,7 @@
   "preset.group_flip": "反転",
   "preset.annotate": "注釈",
   "preset.background": "背景を追加",
+  "preset.background.donut": "背景を追加",
   "preset.metadata": "メタデータ",
   "preset.flip_horizontal": "水平方向に反転",
   "preset.flip_horizontal.short": "水平",

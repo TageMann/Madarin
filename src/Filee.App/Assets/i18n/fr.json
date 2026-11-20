@@ -489,6 +489,7 @@
   "preset.group_flip": "Retourner",
   "preset.annotate": "Annoter",
   "preset.background": "Ajouter un fond",
+  "preset.background.donut": "Ajouter un fond",
   "preset.metadata": "Métadonnées",
   "preset.flip_horizontal": "Retourner horizontalement",
   "preset.flip_horizontal.short": "Horizontal",

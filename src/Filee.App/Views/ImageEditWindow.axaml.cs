@@ -18,7 +18,12 @@ public partial class ImageEditWindow : Window
         UiZoom.Track(this);
         AddHandler(KeyDownEvent, OnKeyDownFirst, RoutingStrategies.Tunnel);
         // The format first, so the keys work at once; Tab goes on down the window.
-        Opened += (_, _) => TargetChoice.Focus();
+        Opened += (_, _) =>
+        {
+            TargetChoice.Focus();
+            // Mandarin: the panel opens at the top (the Light group), though the format below has the keyboard.
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => LookScroll.Offset = default, Avalonia.Threading.DispatcherPriority.Loaded);
+        };
         // Mandarin: a floating panel; its own title bar moves it. The preview is read once it is open, and let go when
         // it closes.
         TitleBar.PointerPressed += (_, e) =>

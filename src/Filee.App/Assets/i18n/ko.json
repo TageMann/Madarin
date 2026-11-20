@@ -489,6 +489,7 @@
   "preset.group_flip": "뒤집기",
   "preset.annotate": "주석",
   "preset.background": "배경 추가",
+  "preset.background.donut": "배경 추가",
   "preset.metadata": "메타데이터",
   "preset.flip_horizontal": "좌우 반전",
   "preset.flip_horizontal.short": "좌우",

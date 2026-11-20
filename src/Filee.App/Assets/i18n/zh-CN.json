@@ -489,6 +489,7 @@
   "preset.group_flip": "翻转",
   "preset.annotate": "批注",
   "preset.background": "添加背景",
+  "preset.background.donut": "添加背景",
   "preset.metadata": "元数据",
   "preset.flip_horizontal": "水平翻转",
   "preset.flip_horizontal.short": "水平",

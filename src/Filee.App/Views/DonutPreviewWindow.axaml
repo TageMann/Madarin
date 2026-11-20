@@ -22,6 +22,7 @@
         SizeToContent="WidthAndHeight">
   <c:DonutMenu x:Name="Donut"
                GlassStyle="True"
+                 UppercaseLabels="True"
                CenterPill="{Binding CenterPill}"
                Items="{Binding Items}"
                CenterTitle="{Binding CenterTitle}"

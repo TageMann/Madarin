@@ -479,6 +479,7 @@
   "preset.group_flip": "Çevir",
   "preset.annotate": "Not ekle",
   "preset.background": "Arka plan ekle",
+  "preset.background.donut": "Arka plan ekle",
   "preset.metadata": "Meta veriler",
   "preset.flip_horizontal": "Yatay çevir",
   "preset.flip_horizontal.short": "Yatay",

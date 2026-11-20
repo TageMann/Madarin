@@ -489,6 +489,7 @@
   "preset.group_flip": "Odbij",
   "preset.annotate": "Adnotacje",
   "preset.background": "Dodaj tło",
+  "preset.background.donut": "Dodaj tło",
   "preset.metadata": "Metadane",
   "preset.flip_horizontal": "Odbij w poziomie",
   "preset.flip_horizontal.short": "Poziomo",

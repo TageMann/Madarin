@@ -489,6 +489,7 @@
   "preset.group_flip": "Inverter",
   "preset.annotate": "Anotar",
   "preset.background": "Adicionar fundo",
+  "preset.background.donut": "Adicionar fundo",
   "preset.metadata": "Metadados",
   "preset.flip_horizontal": "Inverter na horizontal",
   "preset.flip_horizontal.short": "Horizontal",

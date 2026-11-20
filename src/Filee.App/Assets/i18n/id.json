@@ -479,6 +479,7 @@
   "preset.group_flip": "Balik",
   "preset.annotate": "Anotasi",
   "preset.background": "Tambah latar",
+  "preset.background.donut": "Tambah latar",
   "preset.metadata": "Metadata",
   "preset.flip_horizontal": "Balik horizontal",
   "preset.flip_horizontal.short": "Horizontal",

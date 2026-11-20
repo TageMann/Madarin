@@ -489,6 +489,7 @@
   "preset.group_flip": "Отразить",
   "preset.annotate": "Пометки",
   "preset.background": "Добавить фон",
+  "preset.background.donut": "Добавить фон",
   "preset.metadata": "Метаданные",
   "preset.flip_horizontal": "Отразить по горизонтали",
   "preset.flip_horizontal.short": "По гориз.",
