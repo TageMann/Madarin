@@ -25,6 +25,8 @@ public class BackdropTests(EngineFixture fx) : IClassFixture<EngineFixture>
     [InlineData(BackdropCanvas.Square, 10, 480, 480)]
     [InlineData(BackdropCanvas.Landscape, 10, 498, 280)]  // 280 high → 16:9 is 497.8 wide
     [InlineData(BackdropCanvas.Portrait, 10, 480, 600)]   // 480 wide → 4:5 is 600 high
+    [InlineData(BackdropCanvas.Story, 10, 480, 854)]      // 480 wide → 9:16 is 853.3 high
+    [InlineData(BackdropCanvas.Custom, 10, 480, 720)]     // the default ratio of one's own, 2:3
     [InlineData(BackdropCanvas.Auto, 0, 400, 200)]
     public void The_canvas_takes_its_shape_round_the_picture_and_its_padding(BackdropCanvas canvas, int padding, int width, int height)
     {
@@ -32,6 +34,19 @@ public class BackdropTests(EngineFixture fx) : IClassFixture<EngineFixture>
 
         Assert.Equal((width, height), (layout.Width, layout.Height));
         Assert.Equal(((width - 400) / 2, (height - 200) / 2), (layout.X, layout.Y));
+    }
+
+    [Theory]
+    [InlineData(1080, 1350, 480, 600)]   // typed as pixels: only the ratio counts (4:5)
+    [InlineData(3, 1, 840, 280)]         // wider than the picture and its padding: grows sideways
+    [InlineData(0, -5, 480, 480)]        // out of range: 1 × 1
+    public void A_ratio_of_ones_own_shapes_the_canvas(int ratioWidth, int ratioHeight, int width, int height)
+    {
+        var look = new BackdropOptions { Canvas = BackdropCanvas.Custom, Padding = 10, RatioWidth = ratioWidth, RatioHeight = ratioHeight };
+
+        var layout = BackdropComposer.LayoutOf(400, 200, look);
+
+        Assert.Equal((width, height), (layout.Width, layout.Height));
     }
 
     [Fact]

@@ -9,7 +9,7 @@
         xmlns:vm="using:Filee.App.ViewModels"
         x:Class="Filee.App.Views.RadialWindow"
         x:DataType="vm:RadialViewModel"
-        Title="Filee Donut"
+        Title="Mandarin Wheel"
         WindowDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
@@ -41,6 +41,8 @@
   <Panel x:Name="Root" Background="{Binding HitBackground}" DragDrop.AllowDrop="True">
     <c:DonutMenu x:Name="Donut"
                  Opacity="{Binding DonutOpacity}"
+                 GlassStyle="True"
+                 CenterPill="{Binding CenterPill}"
                  Items="{Binding Items}"
                  CenterTitle="{Binding CenterTitle}"
                  CenterSubtitle="{Binding CenterSubtitle}"

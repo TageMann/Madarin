@@ -956,17 +956,25 @@ public sealed partial class DonutMenu : Control
     private void RenderRing(DrawingContext context, Point center, double r1, double r2, int n, Typeface typeface, Typeface typefaceRegular)
     {
         DrawSoftShadow(context, center, r2);
+        if (GlassStyle)
+            DrawGlassPlate(context, center, r1, r2, PlateFlipWidth());
+        // Glass slices sit inside the plate's rim.
+        var w1 = r1 + GlassInset;
+        var w2 = r2 - GlassInset;
 
         if (n == 0)
         {
-            var ring = CreateRing(center, r1, r2);
-            context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity), BorderPen(), ring);
+            var ring = CreateRing(center, w1, w2);
+            if (GlassStyle)
+                DrawSliceSurface(context, ring, true, 0);
+            else
+                context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity), BorderPen(), ring);
             if (_dropTargetIndex >= 0)
                 context.DrawGeometry(WithOpacity(AccentBrush, 0.35), null, ring);
         }
 
         var labels = n > 0
-            ? LabelPlan(Items!, center, r1, r2, i => IsEditMode && i < _mid.Length
+            ? LabelPlan(Items!, center, w1, w2, i => IsEditMode && i < _mid.Length
                 ? (_mid[i].Value, _span[i].Value)
                 : (DonutGeometry.MidAngle(i, n), DonutGeometry.Span(n)), DonutScale, typeface, typefaceRegular)
             : [];
@@ -1000,13 +1008,10 @@ public sealed partial class DonutMenu : Control
             using (context.PushTransform(transform))
             using (context.PushOpacity(Math.Clamp(open, 0, 1) * (i == _dimmedIndex ? 0.3 : 1)))
             {
-                var wedge = CreateWedge(center, r1, r2, mid, span);
-                context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity * (item.IsEnabled ? 1 : 0.55)), BorderPen(), wedge);
-
+                var wedge = CreateWedge(center, w1, w2, mid, span);
                 // The accent fades in and out with the highlight (no floor: a floor made it vanish with a jump).
                 var emphasis = i == _dropTargetIndex ? 1.0 : hover;
-                if (emphasis > 0.01 && item.IsEnabled)
-                    context.DrawGeometry(WithOpacity(AccentBrush, 0.82 * Math.Clamp(emphasis, 0, 1)), null, wedge);
+                DrawSliceSurface(context, wedge, item.IsEnabled, emphasis);
 
                 var hot = (i == ActiveIndex || i == _dropTargetIndex) && item.IsEnabled;
                 DrawSliceLabel(context, labels[i], item.IsEnabled, hot);
@@ -1016,7 +1021,7 @@ public sealed partial class DonutMenu : Control
 
         if (_oldFace is { } old && _oldFaceItems is { } oldItems)
         {
-            var oldLabels = LabelPlan(oldItems, center, r1, r2, i => (old[i].Mid, old[i].Span), DonutScale, typeface, typefaceRegular);
+            var oldLabels = LabelPlan(oldItems, center, w1, w2, i => (old[i].Mid, old[i].Span), DonutScale, typeface, typefaceRegular);
             for (var i = 0; i < old.Length; i++)
             {
                 var slice = old[i];
@@ -1032,10 +1037,8 @@ public sealed partial class DonutMenu : Control
                 using (context.PushTransform(transform))
                 using (context.PushOpacity(Math.Clamp(slice.Open, 0, 1) * (slice.Dimmed ? 0.3 : 1)))
                 {
-                    var wedge = CreateWedge(center, r1, r2, slice.Mid, slice.Span);
-                    context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity * (slice.Item.IsEnabled ? 1 : 0.55)), BorderPen(), wedge);
-                    if (slice.Emphasis > 0.01 && slice.Item.IsEnabled)
-                        context.DrawGeometry(WithOpacity(AccentBrush, 0.82 * Math.Clamp(slice.Emphasis, 0, 1)), null, wedge);
+                    var wedge = CreateWedge(center, w1, w2, slice.Mid, slice.Span);
+                    DrawSliceSurface(context, wedge, slice.Item.IsEnabled, slice.Emphasis);
                     DrawSliceLabel(context, oldLabels[i], slice.Item.IsEnabled, slice.Hot && slice.Item.IsEnabled);
                     DrawGroupMark(context, slice.Item, center, r2, slice.Mid, slice.Hot && slice.Item.IsEnabled);
                 }
@@ -1067,6 +1070,9 @@ public sealed partial class DonutMenu : Control
 
     private void DrawCenter(DrawingContext context, Point center, double r1, Typeface bold, Typeface regular)
     {
+        // Mandarin: only the files' size, in a glass pill over a clear hole.
+        if (DrawGlassCenter(context, center, r1))
+            return;
         var pulse = 1 + _centerPulse.Value * 0.06;
         var radius = (r1 - 6) * pulse;
         var cancelHot = _externalCenterHot;
@@ -1436,7 +1442,7 @@ public sealed partial class DonutMenu : Control
             var (mid, span) = slice(i);
             // The slices of this ring only: the outgoing face of a flip, or a group's ring, compares among its own.
             return new SliceLabelInput(item.Label, item.Caption, item.IconKey, item.Show ?? DefaultShow,
-                new SliceShape(center, inner, outer, mid, span, GapPixels, item.IsGroup ? ChevronIn : 0, item.IsGroup ? ChevronReach : 0),
+                new SliceShape(center, inner, outer, mid, span, SliceGap, item.IsGroup ? ChevronIn : 0, item.IsGroup ? ChevronReach : 0),
                 item.Direction ?? LabelDirection.Auto,
                 NeedsCaption: item.KeepsCaption || SharesItsName(item, items));
         }).ToList();
@@ -1479,7 +1485,7 @@ public sealed partial class DonutMenu : Control
     /// </summary>
     private void DrawSliceLabel(DrawingContext context, SliceLabel label, bool enabled, bool hot)
     {
-        var brush = hot ? OnAccentBrush : enabled ? Foreground : SecondaryForeground;
+        var brush = hot ? HotLabelBrush : enabled ? SliceLabelBrush : SecondaryForeground;
         if (label.IconSize > 0 && SliceIcons.Geometry(label.IconKey) is { } icon)
         {
             var k = label.IconSize / SliceIcons.Box;
@@ -1517,7 +1523,7 @@ public sealed partial class DonutMenu : Control
             }
             if (text.Caption is { } caption)
                 DrawCentered(context, SliceLabelLayout.MakeLine(caption, fonts.Regular, text.CaptionSize,
-                    hot ? OnAccentBrush : SecondaryForeground, fonts.Direction, text.Width), at.X, y);
+                    hot ? HotLabelBrush : SecondaryForeground, fonts.Direction, text.Width), at.X, y);
         }
     }
 
@@ -1720,7 +1726,8 @@ public sealed partial class DonutMenu : Control
     /// How round the slices' corners are: half the theme's softness (0 to 28), so the largest setting still leaves the
     /// slices clearly apart. <see cref="DonutGeometry.Wedge"/> shrinks it for slices too thin for it.
     /// </summary>
-    internal double SliceCornerRadius => Math.Clamp(CornerRadius.TopLeft, 0, 28) * 0.5;
+    // Mandarin's glass slices are rounder (the default softness, 16, gives 12 px corners); 0 still means square.
+    internal double SliceCornerRadius => Math.Clamp(CornerRadius.TopLeft, 0, 28) * (GlassStyle ? 0.75 : 0.5);
 
     private StreamGeometry CreateWedge(Point c, double r1, double r2, int index, int count) =>
         count == 1 ? CreateRing(c, r1, r2) : CreateWedge(c, r1, r2, DonutGeometry.MidAngle(index, count), DonutGeometry.Span(count));
@@ -1732,26 +1739,26 @@ public sealed partial class DonutMenu : Control
     // Slices are drawn every frame while the donut animates, but their shapes only change with the size, the layout
     // or the softness: the shapes are kept and reused. Animations move them with transforms; only the edit mode's
     // sliding slices make new ones, and the cache starts over when it fills up.
-    private readonly Dictionary<(Point C, double R1, double R2, double Mid, double Span, double Corner), StreamGeometry> _wedges = new();
+    private readonly Dictionary<(Point C, double R1, double R2, double Mid, double Span, double Corner, double Gap), StreamGeometry> _wedges = new();
     private const int MaxCachedWedges = 256;
 
     private StreamGeometry CreateWedge(Point c, double r1, double r2, double mid, double span, double cornerRadius)
     {
-        var key = (c, r1, r2, mid, span, cornerRadius);
+        var key = (c, r1, r2, mid, span, cornerRadius, SliceGap);
         if (_wedges.TryGetValue(key, out var cached))
             return cached;
         if (_wedges.Count >= MaxCachedWedges)
             _wedges.Clear();
-        return _wedges[key] = BuildWedge(c, r1, r2, mid, span, cornerRadius);
+        return _wedges[key] = BuildWedge(c, r1, r2, mid, span, cornerRadius, SliceGap);
     }
 
     /// <summary>A slice with a constant-width gap to its neighbours and corners rounded by <paramref name="cornerRadius"/>.</summary>
-    private static StreamGeometry BuildWedge(Point c, double r1, double r2, double mid, double span, double cornerRadius)
+    private static StreamGeometry BuildWedge(Point c, double r1, double r2, double mid, double span, double cornerRadius, double gap)
     {
         if (span >= 2 * Math.PI - 0.001)
             return CreateRing(c, r1, r2);
 
-        var outline = DonutGeometry.Wedge(c, r1, r2, mid, span, GapPixels, cornerRadius);
+        var outline = DonutGeometry.Wedge(c, r1, r2, mid, span, gap, cornerRadius);
         var geometry = new StreamGeometry();
         using var ctx = geometry.Open();
         ctx.BeginFigure(outline.Start, true);

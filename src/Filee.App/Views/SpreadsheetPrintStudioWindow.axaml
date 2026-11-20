@@ -59,7 +59,7 @@
       </Border>
 
       <!-- Exact PDF preview. -->
-      <Grid Grid.Column="1" RowDefinitions="*,132" Background="{DynamicResource PageBrush}">
+      <Grid Grid.Column="1" RowDefinitions="*,132" Background="{DynamicResource MandarinWindowBrush}">
         <Grid Grid.Row="0" Margin="22">
           <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="White"
                   BoxShadow="0 8 28 0 #55000000" CornerRadius="2" MaxWidth="700" MaxHeight="540">

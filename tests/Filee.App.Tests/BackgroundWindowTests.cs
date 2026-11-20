@@ -886,10 +886,10 @@ public sealed class BackgroundWindowTests : IDisposable
         try
         {
             var radios = window.GetVisualDescendants().OfType<RadioButton>().Where(r => r.IsEffectivelyVisible).ToList();
-            // Gradient / Colour / Picture, the six gradients, and the four canvases.
+            // Pictures / Gradient / Colour, Mandarin's ten gradients, and its seven formats.
             Assert.Equal(3, radios.Count(r => r.GroupName == "BackdropKind"));
-            Assert.Equal(6, radios.Count(r => r.GroupName == "BackdropGradient"));
-            Assert.Equal(4, radios.Count(r => r.GroupName == "BackdropCanvas"));
+            Assert.Equal(10, radios.Count(r => r.GroupName == "BackdropGradient"));
+            Assert.Equal(7, radios.Count(r => r.GroupName == "BackdropCanvas"));
             Assert.All(radios.Where(r => r.GroupName is "BackdropGradient" or "BackdropCanvas" && r.Content is not string),
                 r => Assert.False(string.IsNullOrEmpty(Avalonia.Automation.AutomationProperties.GetName(r))));
             Assert.Single(radios, r => r.GroupName == "BackdropKind" && r.IsChecked == true);

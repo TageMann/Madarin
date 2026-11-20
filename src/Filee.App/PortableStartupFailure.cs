@@ -56,7 +56,7 @@ internal static class PortableStartupFailure
         var close = new Button { Content = LocalizationService.EarlyText("common.close"), HorizontalAlignment = HorizontalAlignment.Right };
         var window = new Window
         {
-            Title = "Filee",
+            Title = "Mandarin",
             Width = 520,
             SizeToContent = SizeToContent.Height,
             CanResize = false,

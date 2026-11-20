@@ -26,7 +26,7 @@ log_path = temp / 'filee-startup.log'
 
 
 def filee_logs():
-    for folder in (pathlib.Path.home() / '.config/Filee/logs', pathlib.Path.home() / 'Library/Application Support/Filee/logs'):
+    for folder in (pathlib.Path.home() / '.config/Filee/logs', pathlib.Path.home() / 'Library/Application Support/Filee/logs', pathlib.Path.home() / 'Library/Application Support/Mandarin/logs'):
         if folder.is_dir():
             yield from sorted(folder.glob('*.log'))
 

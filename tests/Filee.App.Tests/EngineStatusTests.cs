@@ -639,7 +639,7 @@ public sealed class EngineStatusTests : IDisposable
             var button = window.GetVisualDescendants().OfType<Button>()
                 .Single(b => ReferenceEquals(b.DataContext, pandoc) && Equals(b.Content, "Use this one instead"));
             Assert.True(button.IsEffectivelyVisible);
-            var expected = $"Use the copy in {system} and remove Filee's download of {pandoc.Name}? You can download it again later.";
+            var expected = $"Use the copy in {system} and remove Mandarin's download of {pandoc.Name}? You can download it again later.";
 
             // "Cancel" leaves everything as it was.
             button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -685,7 +685,7 @@ public sealed class EngineStatusTests : IDisposable
                 .Any(t => ReferenceEquals(t.DataContext, pandoc) && t.Text == text && t.IsEffectivelyVisible);
             Assert.False(Shown(pandoc.Sizes));
             bool Offered() => window.GetVisualDescendants().OfType<Button>()
-                .Any(b => ReferenceEquals(b.DataContext, pandoc) && Equals(b.Content, "Install Filee's copy") && b.IsEffectivelyVisible);
+                .Any(b => ReferenceEquals(b.DataContext, pandoc) && Equals(b.Content, "Install Mandarin's copy") && b.IsEffectivelyVisible);
             Assert.False(Offered());
 
             _systemVersion = new Version(1, 0);

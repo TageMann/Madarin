@@ -59,7 +59,7 @@ public static class WorkFolders
             return Path.Combine(cacheHome!, "filee");
         if (!Path.IsPathFullyQualified(home ?? ""))
             return null;
-        return macOS ? Path.Combine(home!, "Library", "Caches", "Filee") : Path.Combine(home!, ".cache", "filee");
+        return macOS ? Path.Combine(home!, "Library", "Caches", "Mandarin") : Path.Combine(home!, ".cache", "filee");
     }
 
     /// <summary>

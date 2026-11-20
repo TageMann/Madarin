@@ -20,6 +20,13 @@ public partial class BackgroundWindow : Window
     public BackgroundWindow()
     {
         InitializeComponent();
+        // Mandarin: a floating panel without a system title bar; its own title bar moves it.
+        TitleBar.PointerPressed += (_, e) =>
+        {
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
+                && (e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) is null)
+                BeginMoveDrag(e);
+        };
         AddHandler(GotFocusEvent, (_, e) => _focusByKeyboard = e.NavigationMethod is NavigationMethod.Tab or NavigationMethod.Directional,
             Avalonia.Interactivity.RoutingStrategies.Bubble, handledEventsToo: true);
         AddHandler(KeyDownEvent, OnKeyDownFirst, Avalonia.Interactivity.RoutingStrategies.Tunnel);

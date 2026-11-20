@@ -71,7 +71,7 @@ if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
     throw 'Version must be a three-part version with an optional prerelease suffix.'
 }
 $bundleVersion = ($Version -split '-')[0]
-$packageName = "Filee-$Version-$Runtime"
+$packageName = "Mandarin-$Version-$Runtime"
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $OutputDir = (Resolve-Path -LiteralPath $OutputDir).Path
 $archive = Join-Path $OutputDir "$packageName.tar.gz"
@@ -82,7 +82,7 @@ if ((Test-Path -LiteralPath $archive) -or (Test-Path -LiteralPath $sums) -or (Te
 }
 $stage = Join-Path $root ('build/.cache/portable/' + [Guid]::NewGuid().ToString('N'))
 $package = Join-Path $stage $packageName
-$appBundle = Join-Path $package 'Filee.app'
+$appBundle = Join-Path $package 'Mandarin.app'
 $publish = if ($Runtime.StartsWith('osx-')) { Join-Path $appBundle 'Contents/MacOS' } else { $package }
 New-Item -ItemType Directory -Force -Path $publish | Out-Null
 
@@ -138,18 +138,8 @@ if ($Runtime.StartsWith('osx-')) {
     $info.Replace('__VERSION__', $bundleVersion).Replace('__BUNDLE_VERSION__', $bundleVersion) |
         Set-Content -LiteralPath (Join-Path $contents 'Info.plist') -Encoding utf8NoBOM
     Invoke-Checked 'Validate Info.plist' { plutil -lint (Join-Path $contents 'Info.plist') }
-    $iconset = Join-Path $stage 'filee.iconset'
-    New-Item -ItemType Directory -Path $iconset | Out-Null
-    $sourceIcon = Join-Path $root 'src/Filee.App/Assets/Icons/filee.png'
-    foreach ($size in @(16, 32, 128, 256, 512)) {
-        foreach ($scale in @(1, 2)) {
-            $pixels = $size * $scale
-            $suffix = if ($scale -eq 2) { '@2x' } else { '' }
-            $target = Join-Path $iconset "icon_${size}x${size}$suffix.png"
-            Invoke-Checked 'Render app icon' { sips -z $pixels $pixels $sourceIcon --out $target | Out-Null }
-        }
-    }
-    Invoke-Checked 'Create app icon' { iconutil -c icns $iconset -o (Join-Path $resources 'filee.icns') }
+    # Mandarin's own icon, made for every size (installer/macos/mandarin.icns).
+    Copy-Item -LiteralPath (Join-Path $root 'installer/macos/mandarin.icns') -Destination (Join-Path $resources 'mandarin.icns')
     # Translations of the service title ("Convert with Filee") in Finder's right-click menu.
     foreach ($localization in Get-ChildItem -LiteralPath (Join-Path $root 'installer/macos') -Directory -Filter '*.lproj') {
         foreach ($stringsFile in Get-ChildItem -LiteralPath $localization.FullName -File -Filter '*.strings') {
@@ -201,7 +191,7 @@ if ($Runtime.StartsWith('osx-')) {
     $temporaryImage = "$diskImage.$([Guid]::NewGuid().ToString('N')).partial.dmg"
     $dmgFolder = Join-Path $root 'installer/macos/dmg'
     Invoke-Checked 'Create dmg' {
-        python3 -m dmgbuild -s (Join-Path $dmgFolder 'settings.py') -D "app=$appBundle" -D "dir=$dmgFolder" Filee $temporaryImage | Out-Null
+        python3 -m dmgbuild -s (Join-Path $dmgFolder 'settings.py') -D "app=$appBundle" -D "dir=$dmgFolder" Mandarin $temporaryImage | Out-Null
     }
     Move-Item -LiteralPath $temporaryImage -Destination $diskImage
     $packages += $diskImage

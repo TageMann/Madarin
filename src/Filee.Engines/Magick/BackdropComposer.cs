@@ -47,18 +47,28 @@ public static class BackdropComposer
     public static Layout LayoutOf(int width, int height, BackdropOptions look)
     {
         look = look.Clamped();
-        var pad = (int)Math.Round(Math.Max(width, height) * look.Padding / 100.0);
-        int contentWidth = width + 2 * pad, contentHeight = height + 2 * pad;
+        // Mandarin: a picture made smaller (Scale) keeps the canvas it has at full size; width and height are the
+        // size it is drawn at.
+        var scale = look.Scale / 100.0;
+        int baseWidth = Math.Max(width, (int)Math.Round(width / scale)), baseHeight = Math.Max(height, (int)Math.Round(height / scale));
+        var pad = (int)Math.Round(Math.Max(baseWidth, baseHeight) * look.Padding / 100.0);
+        int contentWidth = baseWidth + 2 * pad, contentHeight = baseHeight + 2 * pad;
         // The canvas grows round the picture and its padding until it has the chosen shape; it never crops.
         var (canvasWidth, canvasHeight) = look.Canvas switch
         {
             BackdropCanvas.Square => (Math.Max(contentWidth, contentHeight), Math.Max(contentWidth, contentHeight)),
             BackdropCanvas.Landscape => Grow(contentWidth, contentHeight, 16, 9),
             BackdropCanvas.Portrait => Grow(contentWidth, contentHeight, 4, 5),
+            BackdropCanvas.Story => Grow(contentWidth, contentHeight, 9, 16),
+            BackdropCanvas.Custom => Grow(contentWidth, contentHeight, look.RatioWidth, look.RatioHeight),
+            BackdropCanvas.Original => Grow(contentWidth, contentHeight, baseWidth, baseHeight),
             _ => (contentWidth, contentHeight),
         };
         var radius = (int)Math.Round(Math.Min(width, height) * look.Corners / 100.0);
-        return new Layout(canvasWidth, canvasHeight, (canvasWidth - width) / 2, (canvasHeight - height) / 2, radius);
+        // Centred, or moved across the room round it (OffsetX, OffsetY): −100 is one edge, 100 the other.
+        var x = look.OffsetX == 0 ? (canvasWidth - width) / 2 : (int)Math.Round((canvasWidth - width) * (100 + look.OffsetX) / 200.0);
+        var y = look.OffsetY == 0 ? (canvasHeight - height) / 2 : (int)Math.Round((canvasHeight - height) * (100 + look.OffsetY) / 200.0);
+        return new Layout(canvasWidth, canvasHeight, x, y, radius);
     }
 
     /// <summary>
@@ -67,6 +77,10 @@ public static class BackdropComposer
     /// </summary>
     public static (int Width, int Height) PictureSizeOn(int width, int height, BackdropOptions look)
     {
+        // Mandarin: made smaller on its canvas first (Scale), then as before.
+        var scaled = look.Clamped().Scale;
+        if (scaled < 100)
+            (width, height) = (Math.Max(1, (int)Math.Round(width * scaled / 100.0)), Math.Max(1, (int)Math.Round(height * scaled / 100.0)));
         var layout = LayoutOf(width, height, look);
         if ((long)layout.Width * layout.Height <= MaxPixels)
             return (width, height);

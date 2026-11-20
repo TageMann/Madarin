@@ -170,8 +170,16 @@ public sealed class LocalizationService : ILocalizer
         if (!(loader?.Exists(uri) ?? AssetLoader.Exists(uri)))
             return [];
         using var stream = loader?.Open(uri) ?? AssetLoader.Open(uri);
-        return JsonSerializer.Deserialize(stream, AppJsonContext.Default.DictionaryStringString) ?? [];
+        var strings = JsonSerializer.Deserialize(stream, AppJsonContext.Default.DictionaryStringString) ?? [];
+        // Mandarin: every language names the app Mandarin (the translations were written for Filee).
+        foreach (var key in strings.Keys.ToList())
+            strings[key] = Brand(strings[key]);
+        return strings;
     }
+
+    /// <summary>Mandarin: the app's name in <paramref name="text"/> (written as "Filee") made Mandarin.</summary>
+    internal static string Brand(string text) =>
+        text.Contains("Filee", StringComparison.Ordinal) ? text.Replace("Filee", "Mandarin", StringComparison.Ordinal) : text;
 
     /// <summary>
     /// One string in the system's language, before Avalonia (and the settings) are loaded: for the messages a launch

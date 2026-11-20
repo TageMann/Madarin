@@ -93,7 +93,7 @@
     </Style>
   </Window.Styles>
 
-  <Panel Background="{DynamicResource PageBrush}">
+  <Panel Background="{DynamicResource MandarinWindowBrush}">
     <c:AnnotationCanvas x:Name="Canvas"
                         SourceImage="{Binding PreviewImage}"
                         PictureSize="{Binding PictureSize}"

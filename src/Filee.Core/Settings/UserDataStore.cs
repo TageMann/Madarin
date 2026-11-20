@@ -41,7 +41,74 @@ public sealed class UserDataStore
     /// folder in <see cref="DirectoryVariable"/>.
     /// </summary>
     public static string DefaultDirectory =>
-        OverrideDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Filee");
+        OverrideDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName);
+
+    /// <summary>Mandarin: the name of its data folder (and of the app); Filee's folder is <see cref="LegacyName"/>.</summary>
+    public const string AppName = "Mandarin";
+
+    /// <summary>The app Mandarin was made from, whose data folder it copies once (<see cref="AdoptLegacyData"/>).</summary>
+    public const string LegacyName = "Filee";
+
+    /// <summary>
+    /// Mandarin's picture wheel, front: Compress, Metadata, Edit, Annotate, Add BG, Crop and Redact, clockwise from the
+    /// top.
+    /// </summary>
+    public static readonly string[] MandarinImageActions =
+        ["compress-image", "tool-metadata", "tool-image-edit", "tool-annotate", "tool-background", "tool-crop", "tool-hide"];
+
+    /// <summary>Mandarin's picture wheel, back: the converter.</summary>
+    public static readonly string[] MandarinImageFormats =
+        ["to-jpg", "to-png", "to-webp", "to-heic", "to-tiff", "to-avif", "to-bmp", "to-pdf"];
+
+    /// <summary>What isn't copied from Filee's folder: its logs, and downloaded engines, which stay shared where they are.</summary>
+    private static readonly string[] NotAdopted = ["logs", "engines", "cache", "web"];
+
+    /// <summary>
+    /// Mandarin, first start: copies Filee's settings, presets, toolbars, history and theme from Filee's data folder
+    /// into Mandarin's, when Mandarin has none yet. Filee's folder is only read, never changed or removed. Nothing is
+    /// done with FILEE_DATA_DIR set (a test or development copy). True when something was copied.
+    /// </summary>
+    public static bool AdoptLegacyData(string? legacyDirectory = null, string? directory = null)
+    {
+        if (OverrideDirectory is not null && directory is null)
+            return false;
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var source = legacyDirectory ?? Path.Combine(appData, LegacyName);
+        var target = directory ?? Path.Combine(appData, AppName);
+        try
+        {
+            if (System.IO.Directory.Exists(target) || !System.IO.Directory.Exists(source))
+                return false;
+            var staging = target + ".copying";
+            if (System.IO.Directory.Exists(staging))
+                System.IO.Directory.Delete(staging, recursive: true);
+            CopyFolder(source, staging, top: true);
+            // All or nothing: a copy cut short starts over next time rather than leaving half of the settings.
+            System.IO.Directory.Move(staging, target);
+            return true;
+        }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
+
+    private static void CopyFolder(string from, string to, bool top)
+    {
+        System.IO.Directory.CreateDirectory(to);
+        foreach (var file in System.IO.Directory.EnumerateFiles(from))
+        {
+            if ((File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0)
+                continue;
+            File.Copy(file, Path.Combine(to, Path.GetFileName(file)));
+        }
+        foreach (var folder in System.IO.Directory.EnumerateDirectories(from))
+        {
+            var name = Path.GetFileName(folder);
+            if ((top && NotAdopted.Contains(name, StringComparer.OrdinalIgnoreCase))
+                || (File.GetAttributes(folder) & FileAttributes.ReparsePoint) != 0)
+                continue;
+            CopyFolder(folder, Path.Combine(to, name), top: false);
+        }
+    }
 
     internal static string? DirectoryFrom(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : Path.TrimEndingDirectorySeparator(Path.GetFullPath(value.Trim()));
@@ -89,8 +156,55 @@ public sealed class UserDataStore
         var libraryChanged = File.Exists(ProfilesPath) && SettingsMigrations.ApplyToLibrary(schema, Presets, Profiles);
         EnsureConsistency();
 
+        // Mandarin's one-time changes apply to the user's own data folder only, never to a test's or a developer's.
+        var mandarinProfile = OverrideDirectory is null && string.Equals(Path.TrimEndingDirectorySeparator(Directory),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName),
+            OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+
+        // Custom build: an accent still on the old purple default becomes the orange one, once.
+        var customChanged = false;
+        if (mandarinProfile && !Settings.MandarinLayoutApplied)
+        {
+            // The picture wheel: the actions on the front (as in Mandarin's design), the converter on the back (Tab).
+            if (Profiles.FirstOrDefault(p => p.Id == "images") is { } images)
+            {
+                images.PresetIds = [.. MandarinImageActions.Where(id => FindPreset(id) is not null)];
+                images.BackPresetIds = [.. MandarinImageFormats.Where(id => FindPreset(id) is not null)];
+                libraryChanged = true;
+            }
+            Settings.HideUnusableSlices = true;
+            Settings.MandarinLayoutApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
+        if (!Settings.OrangeAccentApplied)
+        {
+            Settings.Theme ??= new ThemeSettings();
+            if (string.Equals(Settings.Theme.Accent, AppSettings.PreviousDefaultAccent, StringComparison.OrdinalIgnoreCase)
+                && Settings.Theme.PresetKey is null)
+                Settings.Theme.Accent = new ThemeSettings().Accent;
+            Settings.OrangeAccentApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
+        // Mandarin: on macOS the wheel opens with ⌘ + drag; a drag gesture still on Option alone moves to Command, once.
+        if (mandarinProfile && !Settings.CommandDragApplied)
+        {
+            if (OperatingSystem.IsMacOS())
+                foreach (var gesture in Settings.Triggers ?? [])
+                    if (gesture.Kind == TriggerKind.Drag && gesture.Modifiers == ModifierKeys.Alt)
+                        gesture.Modifiers = ModifierKeys.Meta;
+            Settings.CommandDragApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
+        // Custom build: an official update would replace this build, so the automatic check is turned off, once.
+        if (mandarinProfile && !Settings.CustomBuildUpdatesOff)
+        {
+            Settings.CheckForUpdates = false;
+            Settings.CustomBuildUpdatesOff = true;
+            customChanged = File.Exists(SettingsPath);
+        }
+
         // Persist upgrades right away so they run once, even if the user never changes a setting.
-        if (schema < AppSettings.CurrentSchemaVersion && File.Exists(SettingsPath))
+        if ((schema < AppSettings.CurrentSchemaVersion || customChanged) && File.Exists(SettingsPath))
             Write(SettingsPath, Settings, FileeJsonContext.Default.AppSettings);
         if (libraryChanged)
         {

@@ -19,6 +19,9 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     [ObservableProperty] private string _centerTitle = "";
     [ObservableProperty] private string? _centerSubtitle;
     [ObservableProperty] private string? _centerNotice;
+
+    /// <summary>Mandarin: the files' size, the only thing the wheel's hub shows ("2.2 MB"); null keeps the usual hub.</summary>
+    [ObservableProperty] private string? _centerPill;
     private bool _singleInput;
 
     /// <summary>The job the progress ring shows, for the download badge above it; null when the ring shows none.</summary>
@@ -181,11 +184,13 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
         FlipHint = null;
         CenterTitle = loc["preset.filee_connect"];
         CenterSubtitle = loc["donut.close_hint"];
+        CenterPill = null;
     }
 
     /// <summary>Drag mode before any file entered: an empty ring saying "Bring files here".</summary>
     public void ResetForDrag()
     {
+        _hideUnusable = false;
         IsClickMode = false;
         IsConnectMode = false;
         Files = [];
@@ -198,6 +203,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
         ShowFace(back: false);
         CenterTitle = loc["donut.center_drag"];
         CenterSubtitle = null;
+        CenterPill = null;
         DonutOpacity = 0;
         HitBackground = "#01000000";
     }
@@ -209,6 +215,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     public void Load(IReadOnlyList<string> files, bool clickMode, bool backFace = false)
     {
         _example = null;
+        _hideUnusable = store.Settings.HideUnusableSlices;
         IsClickMode = clickMode;
         IsConnectMode = false;
         Files = files;
@@ -260,6 +267,9 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
             ? loc.Format("donut.files_same", counted.Count, formats[0].DisplayName)
             : loc.Format("donut.files_mixed", counted.Count);
         CenterSubtitle = clickMode ? loc["donut.close_hint"] : null;
+        // Mandarin: the hub shows only the size; for files not on disk yet (from a browser) or only folders, the count.
+        CenterPill = DonutMenu.SizeText(counted.Where(p => !folders.Contains(p) && !Filee.Core.Web.WebDrop.IsPlaceholder(p)))
+            ?? loc.Format("donut.files_mixed", counted.Count);
     }
 
     /// <summary>
@@ -271,6 +281,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
     public void LoadPreview(ToolbarProfile profile, bool backFace)
     {
         _example = null;
+        _hideUnusable = false;
         IsClickMode = false;
         IsConnectMode = false;
         Files = [];
@@ -302,6 +313,7 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
             ? loc.Format("donut.files_same", 1, formats[0].DisplayName)
             : formats.Count > 1 ? loc.Format("donut.files_mixed", formats.Count) : loc.DisplayName(profile);
         CenterSubtitle = null;
+        CenterPill = "2.2 MB"; // Mandarin: the preview shows the hub as the wheel does, with an example size
     }
 
     /// <summary>
@@ -513,7 +525,22 @@ public sealed partial class RadialViewModel(UserDataStore store, ILocalizer loc,
                 Direction = p.Direction,
             };
         }).ToList();
-        return new Face(presets, subPresets, items);
+        return OnlyUsable(new Face(presets, subPresets, items));
+    }
+
+    /// <summary>
+    /// Mandarin: on the live wheel, slices that can't do anything with these files are left out (a PNG gets no "PNG"
+    /// slice), so each face shows only what works; a face where nothing works is kept as it is, greyed, to say why.
+    /// </summary>
+    private bool _hideUnusable;
+
+    private Face OnlyUsable(Face face)
+    {
+        if (!_hideUnusable || face.Items.All(item => item.IsEnabled) || !face.Items.Any(item => item.IsEnabled))
+            return face;
+        var keep = Enumerable.Range(0, face.Items.Count).Where(i => face.Items[i].IsEnabled).ToList();
+        return new Face(keep.Select(i => face.Presets[i]).ToList(), keep.Select(i => face.SubPresets[i]).ToList(),
+            keep.Select(i => face.Items[i]).ToList());
     }
 
     /// <summary>Updates the centre hint for the emphasised slice (and slice <paramref name="sub"/> of its group's ring).</summary>

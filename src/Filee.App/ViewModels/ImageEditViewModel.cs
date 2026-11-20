@@ -2,7 +2,10 @@
 // converted instead of in a preset made for each size. The window opens with the tool's last choices; Convert keeps them
 // in the tool and starts ordinary conversions (ImageEditTool), so the toast, cancelling and the output rules work as usual.
 
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Filee.App.Services;
 using Filee.Core.Formats;
 using Filee.Core.Localization;
 using Filee.Core.Presets;
@@ -85,6 +88,135 @@ public sealed partial class ImageEditViewModel : ObservableObject
         _width = image.Width;
         _grayscale = image.Grayscale;
         _quality = image.Quality;
+        _exposure = Math.Clamp(image.Exposure, -3, 3);
+        _brightness = Math.Clamp(image.Brightness, -100, 100);
+        _contrast = Math.Clamp(image.Contrast, -100, 100);
+        _highlights = Math.Clamp(image.Highlights, -100, 100);
+        _shadows = Math.Clamp(image.Shadows, -100, 100);
+    }
+
+    // ───────── Mandarin: the Light group and the live preview ─────────
+
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ExposureText))] private double _exposure;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(BrightnessText))] private int _brightness;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ContrastText))] private int _contrast;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(HighlightsText))] private int _highlights;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ShadowsText))] private int _shadows;
+
+    /// <summary>The first picture with the edits, as the file will look (smaller); null until it is read, or when it can't be.</summary>
+    [ObservableProperty] private Bitmap? _previewImage;
+
+    public string ExposureText => (Math.Round(Exposure * 20) / 20).ToString("+0.00 EV;−0.00 EV;0.00 EV", System.Globalization.CultureInfo.InvariantCulture);
+    public string BrightnessText => Signed(Brightness);
+    public string ContrastText => Signed(Contrast);
+    public string HighlightsText => Signed(Highlights);
+    public string ShadowsText => Signed(Shadows);
+
+    private static string Signed(int value) => value.ToString("+0;−0;+0", System.Globalization.CultureInfo.InvariantCulture);
+
+    partial void OnExposureChanged(double value) => SchedulePreview();
+    partial void OnBrightnessChanged(int value) => SchedulePreview();
+    partial void OnContrastChanged(int value) => SchedulePreview();
+    partial void OnHighlightsChanged(int value) => SchedulePreview();
+    partial void OnShadowsChanged(int value) => SchedulePreview();
+    partial void OnGrayscaleChanged(bool value) => SchedulePreview();
+
+    /// <summary>One slider back to 0 (the small ↺ at the end of its row).</summary>
+    [RelayCommand]
+    private void ResetLight(string? name)
+    {
+        switch (name)
+        {
+            case "exposure": Exposure = 0; break;
+            case "brightness": Brightness = 0; break;
+            case "contrast": Contrast = 0; break;
+            case "highlights": Highlights = 0; break;
+            case "shadows": Shadows = 0; break;
+            default: Exposure = 0; Brightness = 0; Contrast = 0; Highlights = 0; Shadows = 0; break;
+        }
+    }
+
+    private ImageMagick.MagickImage? _previewBase;
+    private int _previewVersion;
+    private bool _previewClosed;
+
+    /// <summary>Reads the first picture, small, for the preview (an animated or unreadable one shows none).</summary>
+    public async Task LoadPreviewAsync()
+    {
+        if (Pictures.Count == 0)
+            return;
+        try
+        {
+            var (preview, _, _) = await HideService.LoadPreviewAsync(Pictures[0], _tool);
+            await Task.Run(() =>
+            {
+                BackdropComposer.ToSrgb(preview);
+                if (preview.Width > PreviewSide || preview.Height > PreviewSide)
+                    preview.Resize(new ImageMagick.MagickGeometry(PreviewSide, PreviewSide) { Greater = true });
+            });
+            if (_previewClosed)
+            {
+                preview.Dispose();
+                return;
+            }
+            _previewBase = preview;
+            SchedulePreview();
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            _log?.LogInformation(ex, "No preview for {File}", Pictures[0]);
+        }
+    }
+
+    private const uint PreviewSide = 1100;
+
+    /// <summary>Draws the preview again with the light as it now is: the latest wins when sliders move quickly.</summary>
+    private async void SchedulePreview()
+    {
+        if (_previewBase is not { } source || _previewClosed)
+            return;
+        var version = ++_previewVersion;
+        await Task.Delay(30);
+        if (version != _previewVersion || _previewClosed)
+            return;
+        var options = new ImageOptions
+        {
+            Exposure = Exposure, Brightness = Brightness, Contrast = Contrast, Highlights = Highlights, Shadows = Shadows,
+            Grayscale = Grayscale,
+        };
+        try
+        {
+            var bitmap = await Task.Run(() =>
+            {
+                using var copy = (ImageMagick.MagickImage)source.Clone();
+                LightAdjuster.Apply(copy, options);
+                if (options.Grayscale)
+                    copy.Grayscale();
+                return HideService.ToBitmap(copy);
+            });
+            if (version != _previewVersion || _previewClosed)
+            {
+                bitmap.Dispose();
+                return;
+            }
+            var old = PreviewImage;
+            PreviewImage = bitmap;
+            old?.Dispose();
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            _log?.LogInformation(ex, "The preview could not be drawn");
+        }
+    }
+
+    /// <summary>The window closed: the preview's pictures go.</summary>
+    public void ClosePreview()
+    {
+        _previewClosed = true;
+        _previewBase?.Dispose();
+        _previewBase = null;
+        PreviewImage?.Dispose();
+        PreviewImage = null;
     }
 
     public IReadOnlyList<string> Pictures { get; }
@@ -289,6 +421,11 @@ public sealed partial class ImageEditViewModel : ObservableObject
         image.Flip = Flip.Value;
         image.Grayscale = Grayscale;
         image.Quality = Math.Clamp(Quality, 1, 100);
+        image.Exposure = Math.Round(Math.Clamp(Exposure, -3, 3), 2);
+        image.Brightness = Math.Clamp(Brightness, -100, 100);
+        image.Contrast = Math.Clamp(Contrast, -100, 100);
+        image.Highlights = Math.Clamp(Highlights, -100, 100);
+        image.Shadows = Math.Clamp(Shadows, -100, 100);
         return image;
     }
 

@@ -119,7 +119,12 @@ internal static class SharedPresetRules
         ("padding", new IntRule(0, BackdropOptions.MaxPadding)),
         ("corners", new IntRule(0, BackdropOptions.MaxCorners)),
         ("shadow", new IntRule(0, BackdropOptions.MaxShadow)),
-        ("canvas", Enum<BackdropCanvas>()));
+        ("canvas", Enum<BackdropCanvas>()),
+        ("ratioWidth", new IntRule(1, BackdropOptions.MaxRatio)),
+        ("ratioHeight", new IntRule(1, BackdropOptions.MaxRatio)),
+        ("scale", new IntRule(BackdropOptions.MinScale, 100)),
+        ("offsetX", new IntRule(-BackdropOptions.MaxOffset, BackdropOptions.MaxOffset)),
+        ("offsetY", new IntRule(-BackdropOptions.MaxOffset, BackdropOptions.MaxOffset)));
 
     /// <summary>
     /// A metadata field given a value: one that names a person, a place or a copyright owner
@@ -182,6 +187,11 @@ internal static class SharedPresetRules
             ("maxCompression", Flag),
             ("keepSourceQuality", Flag),
             ("grayscale", Flag),
+            ("exposure", new NumberRule(-3, 3)),
+            ("brightness", new IntRule(-100, 100)),
+            ("contrast", new IntRule(-100, 100)),
+            ("highlights", new IntRule(-100, 100)),
+            ("shadows", new IntRule(-100, 100)),
             ("trimTransparent", Flag),
             ("removeBackground", Flag),
             ("backgroundTolerance", new IntRule(0, 100)),

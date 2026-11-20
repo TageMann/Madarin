@@ -43,6 +43,9 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         _showInDock = store.Settings.ShowInDock;
         _showMenuBarIcon = store.Settings.ShowMenuBarIcon;
         _coloredMenuBarIcon = store.Settings.ColoredMenuBarIcon;
+        _soundEffects = store.Settings.SoundEffects;
+        _soundVolume = Math.Clamp(store.Settings.SoundVolume, 0, 1);
+        _trackpadHaptics = store.Settings.TrackpadHaptics;
         _contextMenu = store.Settings.ContextMenuEnabled;
         _noHistory = !store.Settings.KeepHistory;
         _historyLimit = store.Settings.EffectiveHistoryLimit;
@@ -72,6 +75,12 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     public bool HasSystemIntegration => _platform is not NullPlatformServices;
     /// <summary>Whether this platform supports changing Filee's Dock visibility.</summary>
     public bool SupportsDockVisibility => _platform.SupportsDockVisibility;
+
+    /// <summary>Custom build: this platform plays sound effects and trackpad haptics.</summary>
+    public bool SupportsFeedbackEffects => _platform.SupportsFeedbackEffects;
+
+    /// <summary>Custom build: the volume slider shows while sound effects are on.</summary>
+    public bool ShowSoundVolume => SupportsFeedbackEffects && SoundEffects;
     /// <summary>The icon colour choice only matters while there is a menu bar icon.</summary>
     public bool ShowColoredMenuBarIconOption => SupportsDockVisibility && ShowMenuBarIcon;
     public string ContextMenuText => _loc[OperatingSystem.IsMacOS() ? "general.context_menu_macos"
@@ -172,6 +181,9 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     [ObservableProperty, NotifyPropertyChangedFor(nameof(ShowColoredMenuBarIconOption))]
     private bool _showMenuBarIcon;
     [ObservableProperty] private bool _coloredMenuBarIcon;
+    [ObservableProperty] private bool _soundEffects;
+    [ObservableProperty] private double _soundVolume;
+    [ObservableProperty] private bool _trackpadHaptics;
     [ObservableProperty] private string? _dockStatus;
     [ObservableProperty] private bool _contextMenu;
     [ObservableProperty] private string? _libraryMessage;
@@ -229,6 +241,21 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     partial void OnShowMenuBarIconChanged(bool value) => Save(s => s.ShowMenuBarIcon = value);
 
     partial void OnColoredMenuBarIconChanged(bool value) => Save(s => s.ColoredMenuBarIcon = value);
+
+    partial void OnSoundEffectsChanged(bool value)
+    {
+        Save(s => s.SoundEffects = value);
+        OnPropertyChanged(nameof(ShowSoundVolume));
+    }
+
+    // Written quietly (as the donut's look is): the slider moves many times a second, and nothing has to be applied again.
+    partial void OnSoundVolumeChanged(double value)
+    {
+        _store.Settings.SoundVolume = Math.Round(Math.Clamp(value, 0, 1), 2);
+        _store.SaveDonutLook();
+    }
+
+    partial void OnTrackpadHapticsChanged(bool value) => Save(s => s.TrackpadHaptics = value);
 
     partial void OnContextMenuChanged(bool value)
     {

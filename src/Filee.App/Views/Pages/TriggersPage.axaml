@@ -61,7 +61,7 @@
                       <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" Foreground="{DynamicResource AccentStrongBrush}" />
                     </Border>
                     <Border Classes="badge accent" IsVisible="{Binding IsConnectShortcut}" VerticalAlignment="Center">
-                      <TextBlock Text="Filee Connect" FontWeight="SemiBold" />
+                      <TextBlock Text="Mandarin Connect" FontWeight="SemiBold" />
                     </Border>
                   </StackPanel>
                 </DockPanel>

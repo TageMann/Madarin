@@ -102,8 +102,9 @@ public sealed class TriggerGesture
     /// <summary>Default gestures for the current OS.</summary>
     public static List<TriggerGesture> Defaults()
     {
-        // On macOS Ctrl+click means right-click, and Option already means "copy" in Finder.
-        var dragModifier = OperatingSystem.IsMacOS() ? ModifierKeys.Alt : ModifierKeys.Ctrl;
+        // On macOS Ctrl+click means right-click, and Option already means "copy" in Finder. Mandarin opens its wheel
+        // with Command + drag; Command alone, and Command with a key (⌘C, ⌘V, ⌘Tab), are left to macOS.
+        var dragModifier = OperatingSystem.IsMacOS() ? ModifierKeys.Meta : ModifierKeys.Ctrl;
         var connectModifier = OperatingSystem.IsMacOS()
             ? ModifierKeys.Alt | ModifierKeys.Shift
             : ModifierKeys.Ctrl | ModifierKeys.Alt;

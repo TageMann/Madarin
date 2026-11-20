@@ -850,7 +850,7 @@ public class RenderTests
             // Changing the setting while the donut is open rounds it at once.
             theme.Apply(new ThemeSettings { Mode = mode, CornerRadius = 28 }, "en");
             Pump();
-            Assert.Equal(14, donut.SliceCornerRadius);
+            Assert.Equal(21, donut.SliceCornerRadius); // Mandarin: glass slices are rounder (28 × 0.75)
             Save(window, $"donut-softness-28-{suffix}.png");
 
             // The sharp corner of slice 2, cut away now, still picks slice 2.
@@ -899,7 +899,7 @@ public class RenderTests
             var donut = window.DonutControl;
             donut.SetExternalHighlight(1);
             Pump();
-            Assert.Equal(14, donut.SliceCornerRadius);
+            Assert.Equal(21, donut.SliceCornerRadius); // Mandarin: glass slices are rounder (28 × 0.75)
 
             // A corner the rounding cut away still picks its slice.
             var n = vm.Items.Count;

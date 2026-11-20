@@ -4,19 +4,19 @@
         xmlns:vm="using:Filee.App.ViewModels"
         x:Class="Filee.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Filee"
+        Title="Mandarin"
         Icon="avares://Filee/Assets/Icons/filee.ico"
         Width="1080" Height="760" MinWidth="820" MinHeight="560"
         WindowStartupLocation="CenterScreen">
   <Grid ColumnDefinitions="Auto,*">
     <!-- Navigation: full width with titles, or collapsed to an icon rail (tooltips instead of text). The width animates. -->
     <Border Classes="navpane" Width="{Binding NavWidth}" ClipToBounds="True"
-            Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="0,0,1,0">
+            Background="{DynamicResource MandarinGlassBrush}" BorderBrush="{DynamicResource MandarinRimBrush}" BorderThickness="0,0,1,0">
       <DockPanel Margin="{Binding NavPadding}">
         <StackPanel DockPanel.Dock="Top" Classes="navheader" Orientation="Horizontal" Spacing="10">
           <Image Source="avares://Filee/Assets/Icons/filee.png" Width="30" Height="30" />
           <StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsNavCollapsed}">
-            <TextBlock Text="Filee" FontSize="18" FontWeight="Bold" />
+            <TextBlock Text="Mandarin" FontSize="18" FontWeight="Bold" />
             <TextBlock Classes="caption" Text="{DynamicResource app.tagline}" />
           </StackPanel>
         </StackPanel>

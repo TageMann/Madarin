@@ -54,7 +54,7 @@ internal static class PortableFirstStart
         var answer = new TaskCompletionSource<bool>();
         var window = new Window
         {
-            Title = "Filee",
+            Title = "Mandarin",
             Width = 640,
             SizeToContent = SizeToContent.Height,
             CanResize = false,

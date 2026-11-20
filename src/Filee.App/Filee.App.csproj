@@ -51,6 +51,12 @@
     <AvaloniaResource Include="..\..\THIRD-PARTY-NOTICES.md" Link="Assets\THIRD-PARTY-NOTICES.md" />
   </ItemGroup>
 
+  <!-- Mandarin: the interface sounds and the built-in pictures for Add BG, next to the program (Contents/MacOS). -->
+  <ItemGroup>
+    <None Include="Sounds\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="Backgrounds\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Filee.App.Tests" />
   </ItemGroup>

@@ -204,7 +204,7 @@
                            IsAlphaVisible="False" IsColorSpectrumVisible="True" IsColorPaletteVisible="False"
                            IsColorComponentsVisible="False" IsColorModelVisible="False" IsColorPreviewVisible="True"
                            FlowDirection="LeftToRight" AutomationProperties.Name="{DynamicResource theme.custom_color}" />
-              <TextBox Text="{Binding AccentHex}" Width="120" PlaceholderText="#7F77DD" FlowDirection="LeftToRight"
+              <TextBox Text="{Binding AccentHex}" Width="120" PlaceholderText="#F27A1E" FlowDirection="LeftToRight"
                        AutomationProperties.Name="{DynamicResource theme.custom_color}" />
             </StackPanel>
 
@@ -311,6 +311,7 @@
           <!-- The donut over a stand-in for the desktop, so its opacity shows. -->
           <Border Background="{Binding PreviewBackdrop}" CornerRadius="{DynamicResource SoftRadiusLarge}" Padding="0,10" ClipToBounds="True">
             <c:DonutMenu x:Name="PreviewDonut" Items="{Binding PreviewItems}" OuterRadius="120" CenterTitle="JPG × 3" HorizontalAlignment="Center"
+                         GlassStyle="True" CenterPill="2.2 MB"
                          SliceOpacity="{Binding DonutOpacity, Converter={x:Static vm:ToolbarConverters.Percent}}"
                          ShowCaptions="{Binding DonutCaptions}" />
           </Border>

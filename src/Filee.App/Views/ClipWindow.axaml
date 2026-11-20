@@ -160,7 +160,7 @@
   </Window.Styles>
 
   <Border x:Name="Shell" ClipToBounds="True"
-          Background="{DynamicResource PageBrush}"
+          Background="{DynamicResource MandarinWindowBrush}"
           BorderBrush="{DynamicResource SubtleBorderBrush}" BorderThickness="1"
           BoxShadow="{DynamicResource CardShadow}">
     <Grid x:Name="Stage">

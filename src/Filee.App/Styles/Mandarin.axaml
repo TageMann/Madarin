@@ -1,0 +1,273 @@
+<!--
+  Mandarin's look: warm orange-to-peach glass panels (the Edit Photo, Add BG and Trim Audio designs), applied over the
+  Soft style to every window that isn't in the Material You style.
+
+  The rules it keeps (liquid glass, translated to Avalonia):
+    • The window is the backdrop: a warm gradient from tangerine at the top to peach and soft pink at the bottom.
+    • Surfaces on it are glass: near-white at a low alpha with a brighter rim at the top. They carry no colour of their
+      own, so the warmth shows through them.
+    • Children of a glass card paint no second surface: rows and groups inside are separated by space and type.
+    • Text stays readable: titles a warm near-black, section headings a deep red-orange, values in a mono-ish weight.
+    • Only the accent (orange, Settings > Theme) and the lit slider track carry strong colour.
+
+  Colours that differ between light and dark live in the theme dictionaries below.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <LinearGradientBrush x:Key="MandarinWindowBrush" StartPoint="20%,0%" EndPoint="80%,100%">
+            <GradientStop Color="#FFFFC53D" Offset="0" />
+            <GradientStop Color="#FFFFA234" Offset="0.30" />
+            <GradientStop Color="#FFFFA77E" Offset="0.68" />
+            <GradientStop Color="#FFF5B4C6" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#73FFFFFF" Offset="0" />
+            <GradientStop Color="#4DFFFFFF" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#D9FFFFFF" Offset="0" />
+            <GradientStop Color="#4DFFFFFF" Offset="1" />
+          </LinearGradientBrush>
+          <SolidColorBrush x:Key="MandarinControlBrush" Color="#5CFFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#8CFFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlPressedBrush" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#26000000" />
+          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FF4A2208" />
+          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FF3A1D0C" />
+          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#B33A1D0C" />
+          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FFC8320B" />
+          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF140C08" />
+          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#33FFFFFF" />
+          <BoxShadows x:Key="MandarinPanelShadow">0 2 6 0 #1F7A2A00, 0 14 34 0 #297A2A00</BoxShadows>
+          <!-- Fluent's inputs on the warm glass -->
+          <SolidColorBrush x:Key="TextControlBackground" Color="#66FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#8CFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#E6FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#80FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#B3FFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#66FFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#8CFFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#80FFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFill" Color="#33000000" />
+          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40000000" />
+          <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#4D000000" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <LinearGradientBrush x:Key="MandarinWindowBrush" StartPoint="20%,0%" EndPoint="80%,100%">
+            <GradientStop Color="#FF43260F" Offset="0" />
+            <GradientStop Color="#FF35200F" Offset="0.35" />
+            <GradientStop Color="#FF2C1A18" Offset="0.7" />
+            <GradientStop Color="#FF261A24" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#2EFFFFFF" Offset="0" />
+            <GradientStop Color="#17FFFFFF" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#59FFFFFF" Offset="0" />
+            <GradientStop Color="#14FFFFFF" Offset="1" />
+          </LinearGradientBrush>
+          <SolidColorBrush x:Key="MandarinControlBrush" Color="#21FFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#38FFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlPressedBrush" Color="#14FFFFFF" />
+          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#26FFFFFF" />
+          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FFFFE9DA" />
+          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FFF7EAE0" />
+          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#B3F7EAE0" />
+          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FFFF9A5C" />
+          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF0C0806" />
+          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#1FFFFFFF" />
+          <BoxShadows x:Key="MandarinPanelShadow">0 2 6 0 #40000000, 0 14 34 0 #59000000</BoxShadows>
+          <SolidColorBrush x:Key="TextControlBackground" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#E62A1A14" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4DFFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFill" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40FFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#4DFFFFFF" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <!-- The lit part of a slider: the warm red-orange of the designs, in both themes. -->
+      <LinearGradientBrush x:Key="MandarinTrackBrush" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Color="#FFFF2E1A" Offset="0" />
+        <GradientStop Color="#FFFF5A1F" Offset="1" />
+      </LinearGradientBrush>
+      <LinearGradientBrush x:Key="MandarinAccentButtonBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Color="#FFFF9A3C" Offset="0" />
+        <GradientStop Color="#FFF0611A" Offset="1" />
+      </LinearGradientBrush>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- ───────── The window: the warm backdrop every glass surface sits on ───────── -->
+  <Style Selector="Window:not(.material-you)">
+    <Setter Property="Background" Value="{DynamicResource MandarinWindowBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) TextBlock.caption, Window:not(.material-you) TextBlock.label, Window:not(.material-you) TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource MandarinMutedBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) TextBlock.h1, Window:not(.material-you) TextBlock.h2">
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTitleBrush}" />
+  </Style>
+
+  <!-- A panel's title, centred in its title bar (Edit Photo, Add BG) -->
+  <Style Selector="TextBlock.panel-title">
+    <Setter Property="FontSize" Value="19" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTitleBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A group's heading ("Light", "Background"): a deep red-orange, as in the designs -->
+  <Style Selector="TextBlock.section">
+    <Setter Property="FontSize" Value="13.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinSectionBrush}" />
+  </Style>
+  <!-- A slider's value at the end of its row ("+0", "0.00 EV", "100 %") -->
+  <Style Selector="TextBlock.value">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A thin line between a panel's title bar, its body and its button row -->
+  <Style Selector="Border.hairline">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource MandarinHairlineBrush}" />
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+
+  <!-- ───────── Glass surfaces ───────── -->
+  <Style Selector="Window:not(.material-you) Border.card, Border.glass">
+    <Setter Property="Background" Value="{DynamicResource MandarinGlassBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BoxShadow" Value="0 1 2 0 #12000000" />
+  </Style>
+  <!-- A floating panel's own body (a tool window that is a transparent overlay, Trim Audio): the warm gradient itself,
+       rounded, with a soft lift. -->
+  <Style Selector="Border.mandarin-panel">
+    <Setter Property="Background" Value="{DynamicResource MandarinWindowBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="26" />
+    <Setter Property="BoxShadow" Value="{DynamicResource MandarinPanelShadow}" />
+  </Style>
+  <!-- The dark well a picture is previewed in, so it stands out (Edit Photo) -->
+  <Style Selector="Border.preview-well">
+    <Setter Property="Background" Value="{DynamicResource MandarinWellBrush}" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <!-- A light well for a canvas preview (Add BG): glass, so the canvas's own background reads against it -->
+  <Style Selector="Border.canvas-well">
+    <Setter Property="Background" Value="{DynamicResource MandarinGlassBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="18" />
+  </Style>
+
+  <!-- ───────── Buttons: glass pills; the accent one a warm gradient ───────── -->
+  <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round) /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlHoverBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round):pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlPressedBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Button.accent:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinAccentButtonBrush}" />
+    <Setter Property="BorderBrush" Value="#59FFFFFF" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Button.accent:pointerover:not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinAccentButtonBrush}" />
+    <Setter Property="Opacity" Value="0.92" />
+  </Style>
+
+  <!-- The round close button at the top left of a panel -->
+  <Style Selector="Button.close-round">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Background" Value="{DynamicResource MandarinCloseBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinTitleBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.close-round:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlHoverBrush}" />
+  </Style>
+
+  <!-- A small round reset arrow at the end of a slider's row -->
+  <Style Selector="Button.reset">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource MandarinMutedBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.reset:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlHoverBrush}" />
+  </Style>
+
+  <!-- ───────── Sliders: a thin warm track and a white pill thumb ───────── -->
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ RepeatButton#PART_DecreaseButton">
+    <Setter Property="Background" Value="{DynamicResource MandarinTrackBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ RepeatButton#PART_DecreaseButton /template/ Border">
+    <Setter Property="Background" Value="{DynamicResource MandarinTrackBrush}" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Background" Value="White" />
+    <Setter Property="BorderBrush" Value="#26000000" />
+    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb:pointerover">
+    <Setter Property="RenderTransform" Value="scale(1.06)" />
+  </Style>
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb:pressed">
+    <Setter Property="RenderTransform" Value="scale(1.12)" />
+  </Style>
+
+  <!-- ───────── Segmented choices: glass track, the chosen segment a brighter pane ───────── -->
+  <Style Selector="Window:not(.material-you) Border.segments">
+    <Setter Property="Background" Value="{DynamicResource MandarinControlBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- Reduce motion (Settings > Theme) keeps the thumb still, as the Soft style does. -->
+  <Style Selector="Window.reduced-motion Slider /template/ Thumb#PART_Thumb">
+    <Setter Property="Transitions" Value="{x:Null}" />
+  </Style>
+</Styles>

@@ -26,10 +26,10 @@
           <SolidColorBrush x:Key="WarningFaintBrush" Color="#1F9A5B0C" />
           <SolidColorBrush x:Key="StatusDangerFaintBrush" Color="#12C73A39" />
           <BoxShadows x:Key="CardShadow">0 1 3 0 #12000000, 0 6 18 0 #0D000000</BoxShadows>
-          <SolidColorBrush x:Key="AccentBrush" Color="#7F77DD" />
-          <SolidColorBrush x:Key="AccentSoftBrush" Color="#2E7F77DD" />
-          <SolidColorBrush x:Key="AccentFaintBrush" Color="#177F77DD" />
-          <SolidColorBrush x:Key="AccentStrongBrush" Color="#5F59A6" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#F27A1E" />
+          <SolidColorBrush x:Key="AccentSoftBrush" Color="#2EF27A1E" />
+          <SolidColorBrush x:Key="AccentFaintBrush" Color="#17F27A1E" />
+          <SolidColorBrush x:Key="AccentStrongBrush" Color="#B55B16" />
           <SolidColorBrush x:Key="OnAccentBrush" Color="#16141A" />
           <!-- Plain buttons: the surface with a thin border, so only a disabled control is a flat grey (#524).
                ThemeService gives them a theme's own surface (Material You, theme.json). -->
@@ -56,10 +56,10 @@
           <SolidColorBrush x:Key="WarningFaintBrush" Color="#26EF9F27" />
           <SolidColorBrush x:Key="StatusDangerFaintBrush" Color="#26F09595" />
           <BoxShadows x:Key="CardShadow">0 1 3 0 #40000000, 0 8 24 0 #33000000</BoxShadows>
-          <SolidColorBrush x:Key="AccentBrush" Color="#7F77DD" />
-          <SolidColorBrush x:Key="AccentSoftBrush" Color="#2E7F77DD" />
-          <SolidColorBrush x:Key="AccentFaintBrush" Color="#177F77DD" />
-          <SolidColorBrush x:Key="AccentStrongBrush" Color="#5F59A6" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#F27A1E" />
+          <SolidColorBrush x:Key="AccentSoftBrush" Color="#2EF27A1E" />
+          <SolidColorBrush x:Key="AccentFaintBrush" Color="#17F27A1E" />
+          <SolidColorBrush x:Key="AccentStrongBrush" Color="#B55B16" />
           <SolidColorBrush x:Key="OnAccentBrush" Color="#16141A" />
           <SolidColorBrush x:Key="ButtonBackground" Color="#262624" />
           <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#31312E" />

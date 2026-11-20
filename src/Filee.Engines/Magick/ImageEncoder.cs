@@ -379,6 +379,9 @@ internal static class ImageEncoder
         if (options.RemoveBackground)
             BackgroundRemover.Apply(image, options.BackgroundTolerance, options.KeepEnclosedBackground);
 
+        // Mandarin: the light adjustments of Edit Photo, before grayscale (as the window's preview applies them).
+        LightAdjuster.Apply(image, options);
+
         if (options.Grayscale)
             image.Grayscale();
 

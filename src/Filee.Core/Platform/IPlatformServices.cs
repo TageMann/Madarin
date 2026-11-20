@@ -14,6 +14,22 @@ public interface IPlatformServices
     /// </summary>
     bool PressCarriesPosition => true;
 
+    /// <summary>
+    /// Custom build: plays a short sound effect at <paramref name="volume"/> (0 to 1): <paramref name="file"/> when it
+    /// is given and can be played, else the platform's own sound for <paramref name="sound"/>. Does nothing where the
+    /// platform has none. UI thread.
+    /// </summary>
+    void PlayFeedbackSound(FeedbackSound sound, double volume, string? file) { }
+
+    /// <summary>
+    /// Custom build: a light tap on a Force Touch trackpad (the slice under the pointer changed). Does nothing where
+    /// the platform or the trackpad has none. UI thread.
+    /// </summary>
+    void PerformHapticTick() { }
+
+    /// <summary>Whether this platform can play <see cref="PlayFeedbackSound"/> and <see cref="PerformHapticTick"/>.</summary>
+    bool SupportsFeedbackEffects => false;
+
     /// <summary>Whether this platform can show or hide Filee in the Dock.</summary>
     bool SupportsDockVisibility => false;
 
@@ -278,3 +294,24 @@ public sealed class NullPlatformServices : IPlatformServices
 /// more, its own words.
 /// </summary>
 public sealed record TrashRefusal(string ReasonKey, string? Detail = null);
+
+/// <summary>Custom build: the moments a sound effect can mark (<see cref="IPlatformServices.PlayFeedbackSound"/>).</summary>
+public enum FeedbackSound
+{
+    /// <summary>The donut opened.</summary>
+    Open,
+    /// <summary>Another slice is under the pointer.</summary>
+    Hover,
+    /// <summary>Files were dropped on (or a slice clicked to convert) a slice.</summary>
+    Drop,
+    /// <summary>A conversion finished without errors.</summary>
+    Done,
+    /// <summary>A conversion finished with errors, or something can't be done with these files.</summary>
+    Failed,
+    /// <summary>Mandarin: the wheel turned over to its other face.</summary>
+    Flip,
+    /// <summary>Mandarin: an editing panel opened.</summary>
+    Panel,
+    /// <summary>Mandarin: a choice in a panel was picked (a background, a ratio).</summary>
+    Select,
+}

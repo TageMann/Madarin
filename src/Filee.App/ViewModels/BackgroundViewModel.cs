@@ -25,9 +25,12 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     /// </summary>
     public static readonly (string From, string To, string NameKey)[] GradientPresets =
     [
-        ("#F6B26B", "#E06C9F", "background.gradient_sunset"), ("#8EC5FC", "#E0C3FC", "background.gradient_sky"),
-        ("#43E97B", "#38F9D7", "background.gradient_mint"), ("#FA709A", "#FEE140", "background.gradient_peach"),
-        ("#30CFD0", "#330867", "background.gradient_ocean"), ("#A18CD1", "#FBC2EB", "background.gradient_lilac"),
+        // Mandarin: warm orange and peach first, then soft blues and purples.
+        ("#FFB347", "#FF5E3A", "background.gradient_tangerine"), ("#8EC5FC", "#E0C3FC", "background.gradient_sky"),
+        ("#FFD3B5", "#FF8A80", "background.gradient_apricot"), ("#F6B26B", "#E06C9F", "background.gradient_sunset"),
+        ("#30CFD0", "#330867", "background.gradient_ocean"), ("#667EEA", "#764BA2", "background.gradient_dusk"),
+        ("#A18CD1", "#FBC2EB", "background.gradient_lilac"), ("#43E97B", "#38F9D7", "background.gradient_mint"),
+        ("#FA709A", "#FEE140", "background.gradient_peach"), ("#FFFFFF", "#E6E9EF", "background.gradient_cloud"),
     ];
 
     /// <summary>The colours offered first, with what a screen reader says for each.</summary>
@@ -35,6 +38,9 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     [
         ("#FFFFFF", "background.color_white"), ("#F2F0EB", "background.color_paper"), ("#1E1E1E", "background.color_charcoal"),
         ("#2D3A8C", "background.color_navy"), ("#E8D5C4", "background.color_sand"), ("#C9E4DE", "background.color_sage"),
+        // Mandarin
+        ("#EDEEF1", "background.color_light_gray"), ("#FF7A1E", "background.color_orange"), ("#FF6F61", "background.color_coral"),
+        ("#FF5FA2", "background.color_pink"), ("#8B5CF6", "background.color_purple"), ("#2F80ED", "background.color_blue"),
     ];
 
     /// <summary>The preview of a picture behind is read as large as it takes to cover a square this wide.</summary>
@@ -80,6 +86,7 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
         _hasMultipleFiles = files.Count > 1;
         Gradients = [.. GradientPresets.Select(g => new BackdropSwatch(g.From, g.To, g.NameKey, this) { Name = loc[g.NameKey] })];
         Colors = [.. ColorPresets.Select(c => new BackdropSwatch(c.Color, c.Color, c.NameKey, this) { Name = loc[c.NameKey] })];
+        Pictures = [.. BuiltInPictures().Select(path => new PictureSwatch(path, this))];
         loc.LanguageChanged += OnLanguageChanged;
         ShowLook();
         _ = LoadFileAsync(0);
@@ -87,6 +94,35 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
 
     public IReadOnlyList<BackdropSwatch> Gradients { get; }
     public IReadOnlyList<BackdropSwatch> Colors { get; }
+
+    /// <summary>Mandarin: the pictures it comes with, to put behind (the Backgrounds folder next to the program).</summary>
+    public IReadOnlyList<PictureSwatch> Pictures { get; }
+
+    /// <summary>Mandarin's own pictures, by name; none when the folder isn't there (tests, a build without it).</summary>
+    internal static IEnumerable<string> BuiltInPictures()
+    {
+        var folder = Path.Combine(AppContext.BaseDirectory, "Backgrounds");
+        try
+        {
+            return Directory.Exists(folder)
+                ? Directory.EnumerateFiles(folder).Where(f => f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                    || f.EndsWith(".png", StringComparison.OrdinalIgnoreCase)).Order(StringComparer.Ordinal).ToList()
+                : [];
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>Mandarin: one of its own pictures was picked to go behind.</summary>
+    internal void Choose(PictureSwatch swatch)
+    {
+        Picture = swatch.Path;
+        Kind = BackdropKind.Picture;
+        ShowPreview();
+        Services.FeedbackEffects.Shared?.Play(Filee.Core.Platform.FeedbackSound.Select);
+    }
 
     [ObservableProperty] private int _currentIndex;
     [ObservableProperty] private string _currentFileName = "";
@@ -182,8 +218,37 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     private int _shadow;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsAuto), nameof(IsSquare), nameof(IsLandscape), nameof(IsPortrait))]
+    [NotifyPropertyChangedFor(nameof(IsAuto), nameof(IsSquare), nameof(IsLandscape), nameof(IsPortrait), nameof(IsStory), nameof(IsCustom), nameof(IsOriginal))]
     private BackdropCanvas _canvas;
+
+    /// <summary>Mandarin: how large the picture is on its canvas, in percent.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PictureScaleText))]
+    private int _pictureScale = 100;
+
+    /// <summary>Mandarin: where the picture sits across, −100 to 100.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OffsetXText))]
+    private int _offsetX;
+
+    /// <summary>Mandarin: where the picture sits up and down, −100 to 100.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OffsetYText))]
+    private int _offsetY;
+
+    public int MinScale => BackdropOptions.MinScale;
+    public string PictureScaleText => $"{PictureScale} %";
+    public string OffsetXText => OffsetX == 0 ? "0" : OffsetX.ToString("+0;−0", System.Globalization.CultureInfo.InvariantCulture);
+    public string OffsetYText => OffsetY == 0 ? "0" : OffsetY.ToString("+0;−0", System.Globalization.CultureInfo.InvariantCulture);
+    public bool IsOriginal => Canvas == BackdropCanvas.Original;
+
+    /// <summary>Custom build: the width side of a ratio of one's own (<see cref="BackdropCanvas.Custom"/>).</summary>
+    [ObservableProperty] private int _ratioWidth = 2;
+
+    /// <summary>Custom build: the height side of a ratio of one's own.</summary>
+    [ObservableProperty] private int _ratioHeight = 3;
+
+    public int MaxRatio => BackdropOptions.MaxRatio;
 
     public bool IsGradient => Kind == BackdropKind.Gradient;
     public bool IsColor => Kind == BackdropKind.Color;
@@ -192,6 +257,8 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     public bool IsSquare => Canvas == BackdropCanvas.Square;
     public bool IsLandscape => Canvas == BackdropCanvas.Landscape;
     public bool IsPortrait => Canvas == BackdropCanvas.Portrait;
+    public bool IsStory => Canvas == BackdropCanvas.Story;
+    public bool IsCustom => Canvas == BackdropCanvas.Custom;
     public bool HasPicture => !string.IsNullOrEmpty(Picture);
     public string PictureName => HasPicture ? Path.GetFileName(Picture!) : _loc["background.no_picture"];
 
@@ -236,6 +303,11 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
         Corners = look.Corners;
         Shadow = look.Shadow;
         Canvas = look.Canvas;
+        RatioWidth = look.RatioWidth;
+        RatioHeight = look.RatioHeight;
+        PictureScale = look.Scale;
+        OffsetX = look.OffsetX;
+        OffsetY = look.OffsetY;
         _syncing = false;
         UpdateSwatches();
     }
@@ -263,6 +335,36 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     partial void OnCornersChanged(int value) => Change(look => look.Corners = value);
     partial void OnShadowChanged(int value) => Change(look => look.Shadow = value);
     partial void OnCanvasChanged(BackdropCanvas value) => Change(look => look.Canvas = value);
+    partial void OnRatioWidthChanged(int value) => Change(look => look.RatioWidth = Math.Clamp(value, 1, BackdropOptions.MaxRatio));
+    partial void OnRatioHeightChanged(int value) => Change(look => look.RatioHeight = Math.Clamp(value, 1, BackdropOptions.MaxRatio));
+    partial void OnPictureScaleChanged(int value) => Change(look => look.Scale = Math.Clamp(value, BackdropOptions.MinScale, 100));
+    partial void OnOffsetXChanged(int value) => Change(look => look.OffsetX = Math.Clamp(value, -BackdropOptions.MaxOffset, BackdropOptions.MaxOffset));
+    partial void OnOffsetYChanged(int value) => Change(look => look.OffsetY = Math.Clamp(value, -BackdropOptions.MaxOffset, BackdropOptions.MaxOffset));
+
+    /// <summary>Mandarin: back to the picture at full size, centred.</summary>
+    [RelayCommand]
+    private void ResetPlacement()
+    {
+        PictureScale = 100;
+        OffsetX = 0;
+        OffsetY = 0;
+    }
+
+    /// <summary>Mandarin: one slider back to where it starts (the small ↺ by each).</summary>
+    [RelayCommand]
+    private void ResetValue(string? name)
+    {
+        var defaults = new BackdropOptions();
+        switch (name)
+        {
+            case "scale": PictureScale = defaults.Scale; break;
+            case "x": OffsetX = 0; break;
+            case "y": OffsetY = 0; break;
+            case "padding": Padding = defaults.Padding; break;
+            case "corners": Corners = defaults.Corners; break;
+            case "shadow": Shadow = defaults.Shadow; break;
+        }
+    }
 
     /// <summary>Turning "same look" on gives every picture the look of the one shown.</summary>
     partial void OnSameLookChanged(bool value)
@@ -277,11 +379,16 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
     private void SetKind(BackdropKind kind) => Kind = kind;
 
     [RelayCommand]
-    private void SetCanvas(BackdropCanvas canvas) => Canvas = canvas;
+    private void SetCanvas(BackdropCanvas canvas)
+    {
+        Canvas = canvas;
+        Services.FeedbackEffects.Shared?.Play(Filee.Core.Platform.FeedbackSound.Select);
+    }
 
     /// <summary>A gradient or colour swatch was chosen.</summary>
     internal void Choose(BackdropSwatch swatch)
     {
+        Services.FeedbackEffects.Shared?.Play(Filee.Core.Platform.FeedbackSound.Select);
         if (Gradients.Contains(swatch))
         {
             Kind = BackdropKind.Gradient;
@@ -315,6 +422,8 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
             swatch.IsSelected = look.Kind == BackdropKind.Gradient && Same(swatch.From, look.From) && Same(swatch.To, look.To);
         foreach (var swatch in Colors)
             swatch.IsSelected = look.Kind == BackdropKind.Color && Same(swatch.From, look.Color);
+        foreach (var swatch in Pictures)
+            swatch.IsSelected = look.Kind == BackdropKind.Picture && string.Equals(swatch.Path, look.Picture, StringComparison.Ordinal);
     }
 
     private static bool Same(string a, string b) => string.Equals(a.TrimStart('#'), b.TrimStart('#'), StringComparison.OrdinalIgnoreCase);
@@ -710,7 +819,8 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
 
     private static bool Same(BackdropOptions? a, BackdropOptions b) =>
         a is not null && a.Kind == b.Kind && a.From == b.From && a.To == b.To && a.Color == b.Color && a.Picture == b.Picture
-        && a.Padding == b.Padding && a.Corners == b.Corners && a.Shadow == b.Shadow && a.Canvas == b.Canvas;
+        && a.Padding == b.Padding && a.Corners == b.Corners && a.Shadow == b.Shadow && a.Canvas == b.Canvas
+        && a.RatioWidth == b.RatioWidth && a.RatioHeight == b.RatioHeight && a.Scale == b.Scale && a.OffsetX == b.OffsetX && a.OffsetY == b.OffsetY;
 
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
@@ -741,7 +851,42 @@ public sealed partial class BackgroundViewModel : ObservableObject, IDisposable
         foreach (var bitmap in _retired)
             bitmap.Dispose();
         _retired.Clear();
+        foreach (var swatch in Pictures)
+            swatch.Dispose();
     }
+}
+
+/// <summary>Mandarin: one of its own pictures, offered as a small thumbnail to put behind.</summary>
+public sealed partial class PictureSwatch : ObservableObject, IDisposable
+{
+    private readonly BackgroundViewModel _owner;
+
+    public PictureSwatch(string path, BackgroundViewModel owner)
+    {
+        Path = path;
+        _owner = owner;
+        Name = System.IO.Path.GetFileNameWithoutExtension(path).Replace('-', ' ');
+        try
+        {
+            using var stream = File.OpenRead(path);
+            Thumbnail = Bitmap.DecodeToWidth(stream, 112, BitmapInterpolationMode.MediumQuality);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        {
+            Thumbnail = null;
+        }
+    }
+
+    public string Path { get; }
+    public string Name { get; }
+    public Bitmap? Thumbnail { get; }
+
+    [ObservableProperty] private bool _isSelected;
+
+    [RelayCommand]
+    private void Choose() => _owner.Choose(this);
+
+    public void Dispose() => Thumbnail?.Dispose();
 }
 
 /// <summary>A gradient or colour offered as a swatch, named for screen readers and its tooltip.</summary>

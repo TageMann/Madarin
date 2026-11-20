@@ -160,6 +160,14 @@ public sealed partial class DonutMenu
         if (!IsFlipping)
             return Matrix.Identity;
         var width = SliceFlipWidth(oldFace, index);
+        if (GlassStyle)
+        {
+            // Mandarin: the wheel turns over about its vertical axis, like a glass disc, and rises a little as it does.
+            var c = Center;
+            var lift = 1 + FlipLift * 0.04;
+            return Matrix.CreateTranslation(-c.X, -c.Y) * Matrix.CreateScale(width * lift, lift) *
+                   Matrix.CreateTranslation(c.X, c.Y);
+        }
         var mid = oldFace ? _oldFace![index].Mid : IsEditMode ? _mid[index].Value : DonutGeometry.MidAngle(index, Count);
         var center = Center;
         return Matrix.CreateTranslation(-center.X, -center.Y) * Matrix.CreateRotation(-mid) *

@@ -19,13 +19,36 @@ public class DataDirectoryTests
 
             Environment.SetEnvironmentVariable(UserDataStore.DirectoryVariable, null);
             Assert.Null(UserDataStore.OverrideDirectory);
-            Assert.Equal(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Filee"),
+            Assert.Equal(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mandarin"),
                 UserDataStore.DefaultDirectory);
         }
         finally
         {
             Environment.SetEnvironmentVariable(UserDataStore.DirectoryVariable, before);
         }
+    }
+
+    [Fact]
+    public void Mandarin_copies_fileees_settings_once_and_leaves_filee_alone()
+    {
+        using var dir = new TempDir();
+        var filee = Path.Combine(dir.Path, "Filee");
+        var mandarin = Path.Combine(dir.Path, "Mandarin");
+        Directory.CreateDirectory(Path.Combine(filee, "logs"));
+        Directory.CreateDirectory(Path.Combine(filee, "sounds"));
+        File.WriteAllText(Path.Combine(filee, "settings.json"), "{}");
+        File.WriteAllText(Path.Combine(filee, "logs", "filee.log"), "x");
+        File.WriteAllText(Path.Combine(filee, "sounds", "done.wav"), "x");
+
+        Assert.True(UserDataStore.AdoptLegacyData(filee, mandarin));
+
+        Assert.True(File.Exists(Path.Combine(mandarin, "settings.json")));
+        Assert.True(File.Exists(Path.Combine(mandarin, "sounds", "done.wav")));
+        Assert.False(Directory.Exists(Path.Combine(mandarin, "logs")));
+        Assert.True(File.Exists(Path.Combine(filee, "settings.json")));
+        File.WriteAllText(Path.Combine(mandarin, "settings.json"), "{\"mine\":1}");
+        Assert.False(UserDataStore.AdoptLegacyData(filee, mandarin));
+        Assert.Contains("mine", File.ReadAllText(Path.Combine(mandarin, "settings.json")));
     }
 
     [Theory]

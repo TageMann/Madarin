@@ -61,6 +61,9 @@ internal static class Program
         Filee.Engines.Magick.MagickSecurity.Initialize();
         Options = CommandLine.Parse(args);
         PreloadedStore = null;
+        // Mandarin, first start: Filee's settings come along (Filee's own folder is left as it is).
+        if (!PortableMode.IsEnabled)
+            UserDataStore.AdoptLegacyData();
         Log = StartupDiagnostics.CreateEarlyLogger(Path.Combine(UserDataStore.DefaultDirectory, "logs"), out var earlyStoreLogger);
         StartupDiagnostics.LogUnhandledExceptions(Log);
         Elevation = Filee.Platform.Windows.Elevation.Probe();

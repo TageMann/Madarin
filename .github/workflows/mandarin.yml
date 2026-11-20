@@ -1,0 +1,100 @@
+# Mandarin: builds Mandarin.app for Apple silicon Macs, runs the tests, and uploads the disk image, the test results and
+# the screenshots the render tests take (Mandarin's wheel and panels among them).
+#
+# Runs on every push to main or mandarin, and from the Actions tab (Run workflow). The disk image is ad-hoc signed and
+# not notarized: macOS asks once, under System Settings > Privacy & Security > Open Anyway.
+name: Mandarin for macOS
+
+on:
+  push:
+    branches: [main, mandarin]
+  workflow_dispatch:
+
+concurrency:
+  group: mandarin-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mac:
+    name: Mandarin.app (Apple silicon)
+    runs-on: macos-15
+    timeout-minutes: 150
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Disk image tool
+        run: python3 -m pip install -r installer/macos/dmg/requirements.txt
+
+      - name: Fonts
+        run: ./build/fetch-fonts.ps1
+
+      - name: Restore engine downloads
+        uses: actions/cache@v4
+        with:
+          path: build/.cache/portable-downloads
+          key: portable-engines-osx-arm64-${{ hashFiles('src/Filee.Engines/Infrastructure/engines.json') }}
+
+      - name: Build
+        run: |
+          ./build/fetch-portable-engines.ps1 -Runtime osx-arm64 -Destination engines
+          dotnet build Filee.slnx -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # Every test project runs even when one fails, so one run shows everything; the job fails at the end if any did.
+      - name: Test
+        id: test
+        continue-on-error: true
+        run: |
+          $failed = @()
+          foreach ($project in @('Filee.Core.Tests', 'Filee.Engines.Tests', 'Filee.Platform.Tests', 'Filee.Cli.Tests', 'Filee.App.Tests')) {
+            $arguments = @('test', "tests/$project/$project.csproj", '--no-build', '-c', 'Release',
+              '--logger', "trx;LogFileName=$project.trx", '--results-directory', 'TestResults',
+              '--filter', 'FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Every_native_import_exists_in_the_dll_it_names&FullyQualifiedName!=Filee.App.Tests.ExplorerMenuTests.Reading_the_registered_package_never_throws')
+            if ($project -eq 'Filee.App.Tests') { $arguments += @('--blame-hang-timeout', '5m') }
+            dotnet @arguments
+            if ($LASTEXITCODE -ne 0) { $failed += $project }
+          }
+          if ($failed.Count -gt 0) { Write-Host "Failed: $($failed -join ', ')"; exit 1 }
+
+      - name: Build Mandarin.app and its disk image
+        run: ./build/build-portable.ps1 -Runtime osx-arm64 -SkipFonts
+
+      - name: Check the package and run its converters
+        run: ./build/smoke-portable.ps1 -Runtime osx-arm64
+
+      - name: Upload Mandarin
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mandarin-macOS-AppleSilicon
+          path: |
+            Releases/*-osx-arm64.dmg
+            Releases/*-osx-arm64-SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Upload test results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-and-screenshots
+          path: |
+            TestResults/
+            tests/Filee.App.Tests/bin/Release/net10.0/screenshots/
+          if-no-files-found: ignore
+
+      - name: Fail when a test failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1

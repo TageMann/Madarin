@@ -33,6 +33,7 @@ public sealed class ConversionService
     private readonly HashSet<JobViewModel> _visibleToasts = [];
     private readonly HashSet<JobViewModel> _feedbackAfterDismiss = [];
     private readonly ILogger<ConversionService>? _log;
+    private readonly FeedbackEffects _effects;   // custom build: the done / failed sounds
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, JobViewModel> _byId = new();
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, TaskCompletionSource<ConversionJob>> _waiting = new();
 
@@ -51,6 +52,7 @@ public sealed class ConversionService
         _loc = loc;
         _platform = platform;
         _downloader = downloader;
+        _effects = new FeedbackEffects(platform, store);
         _toastLifetime = new ToastLifetime<JobViewModel>(Remove, (action, delay) => ScheduleToastDismissal(action, delay));
         _queue.JobUpdated += OnJobUpdated;
         _queue.JobFinished += OnJobFinished;
@@ -292,6 +294,9 @@ public sealed class ConversionService
             if (!_byId.TryGetValue(job.Id, out var vm))
                 return;
             vm.Refresh();
+            // Custom build: a sound when a conversion one started finishes (not a watch folder's, not a cancelled one).
+            if (entry.WatchRuleId is null && job.State != JobState.Cancelled)
+                _effects.Play(vm.HasErrors ? FeedbackSound.Failed : FeedbackSound.Done);
             var keep = vm.HasErrors ? KeepErrors : KeepSuccess;
             _toastLifetime.Finished(vm, keep, _visibleToasts.Contains(vm) || !ToastJobs.Contains(vm));
             if (!vm.HasErrors && CountSuccess(job))

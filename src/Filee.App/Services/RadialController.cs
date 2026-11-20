@@ -72,6 +72,11 @@ public sealed class RadialController(
     private bool _forLaunches;  // the click-mode donut's files came from later launches, so more of them can join it
     private bool _dragBackFace; // the drag gesture opens the donut on its back face, once files enter it
 
+    // Custom build: sound effects and trackpad haptics (FeedbackEffects).
+    private FeedbackEffects? _feedback;
+    private FeedbackEffects Effects => _feedback ??= new FeedbackEffects(platform, store);
+    private (int Index, int Sub) _lastFelt = (-1, -1);   // the slice the last tick was for
+
     /// <summary>
     /// How long a drag that never brought files may keep the invisible window up, in case the button release is
     /// missed (the system dropped the input hook, a UAC prompt took the desktop): the window catches clicks.
@@ -161,6 +166,7 @@ public sealed class RadialController(
         window.DonutControl.AllowContextEdit = true;
         // Set the initial pose before showing the reused window, avoiding a fully-open flash.
         window.DonutControl.PlayOpenAnimation();
+        OpenFeedback();
         PlaceAndShow(window, x, y, activate: true);
         WatchFlipKey();
     }
@@ -178,6 +184,7 @@ public sealed class RadialController(
         viewModel.FitToThisDonut();
         window.DonutControl.AllowContextEdit = false;
         window.DonutControl.PlayOpenAnimation();
+        OpenFeedback();
         PlaceAndShow(window, x, y, activate: true);
     }
 
@@ -318,6 +325,7 @@ public sealed class RadialController(
                 return;
             viewModel.Load(files, clickMode: false, _dragBackFace);
             donut.PlayOpenAnimation();
+            OpenFeedback();
             TakeKeyboard(window);
             WatchFlipKey();
         };
@@ -368,7 +376,17 @@ public sealed class RadialController(
             Close();
         };
 
-        donut.ActiveIndexChanged += (_, index) => viewModel.ShowHint(index, donut.ActiveSubIndex, donut.IsCenterHot);
+        donut.ActiveIndexChanged += (_, index) =>
+        {
+            viewModel.ShowHint(index, donut.ActiveSubIndex, donut.IsCenterHot);
+            // Custom build: a tick and a trackpad tap each time another slice comes under the pointer.
+            var sub = donut.ActiveSubIndex;
+            if (index == _lastFelt.Index && sub == _lastFelt.Sub)
+                return;
+            _lastFelt = (index, sub);
+            if (_visible && !donut.IsInProgressMode)
+                Effects.SliceChanged(index, sub);
+        };
         // Drag mode: the flip key and the wheel seen by the global hook (click mode gets them in the focused window, and so
         // does a drag-mode donut that has the keyboard: see TakeKeyboard).
         triggers.FlipKeyPressed += (_, _) =>
@@ -384,6 +402,8 @@ public sealed class RadialController(
         donut.SegmentInvoked += (_, index) => Convert(index, -1, viewModel.Files, TakeWeb());
         donut.SubSegmentInvoked += (_, hit) => Convert(hit.Group, hit.Sub, viewModel.Files, TakeWeb());
         donut.CenterInvoked += (_, _) => Close();
+        // Mandarin: a soft pop as the wheel turns over.
+        donut.FaceSwapping += (_, _) => Effects.Play(FeedbackSound.Flip);
         donut.SegmentContextRequested += async (_, index) => await EditPresetAsync(index);
         donut.SubSegmentContextRequested += async (_, hit) => await EditPresetAsync(hit.Group, hit.Sub);
         donut.ProgressCancelRequested += (_, _) => _progressJob?.CancelCommand.Execute(null);
@@ -419,10 +439,14 @@ public sealed class RadialController(
                 viewModel.PresetAt(index, sub) is not { } slice ? $"no preset at slice {index}/{sub}"
                 : orphaned ? "the browser drop behind the files is gone"
                 : $"none of the {files.Count} file(s) fit preset {slice.Id}");
+            Effects.Play(FeedbackSound.Failed);   // Mandarin: these files can't go there
             web?.Dispose();
             Close();
             return;
         }
+
+        // Mandarin: a pop for a conversion, a softer slide as a tool's panel opens.
+        Effects.Play(preset.IsTool && !preset.IsCopyToFolder ? FeedbackSound.Panel : FeedbackSound.Drop);
 
         if (preset.IsTool && !preset.IsCopyToFolder)
         {
@@ -977,6 +1001,13 @@ public sealed class RadialController(
         return new PixelPoint(
             Math.Clamp(position.X, a.X, Math.Max(a.X, a.Right - sidePx)),
             Math.Clamp(position.Y, a.Y, Math.Max(a.Y, a.Bottom - sidePx)));
+    }
+
+    /// <summary>Custom build: the donut opened with files: its sound, and the next slice gets a tick again.</summary>
+    private void OpenFeedback()
+    {
+        _lastFelt = (-1, -1);
+        Effects.Play(FeedbackSound.Open);
     }
 
     private void PlaceAndShow(RadialWindow window, int x, int y, bool activate)

@@ -341,7 +341,7 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
             ShowActivated = !OperatingSystem.IsMacOS(),
             WindowDecorations = WindowDecorations.None,
             WindowStartupLocation = WindowStartupLocation.CenterScreen,
-            Title = "Filee",
+            Title = "Mandarin",
         };
         var platform = services.GetRequiredService<Filee.Core.Platform.IPlatformServices>();
         // Move to active Space before Show() so collection behavior is set before Avalonia maps the NSWindow onto WindowServer (#596).

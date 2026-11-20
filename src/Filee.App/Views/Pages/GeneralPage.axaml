@@ -27,6 +27,18 @@
                       IsChecked="{Binding ColoredMenuBarIcon}" IsVisible="{Binding ShowColoredMenuBarIconOption}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding DockStatus}"
                    IsVisible="{Binding DockStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        <!-- Custom build: sound effects and trackpad haptics (FeedbackEffects). -->
+        <ToggleSwitch x:Name="SoundEffectsSwitch" Content="{DynamicResource general.sound_effects}"
+                      IsChecked="{Binding SoundEffects}" IsVisible="{Binding SupportsFeedbackEffects}" />
+        <StackPanel IsVisible="{Binding ShowSoundVolume}">
+          <TextBlock Classes="label" Text="{DynamicResource general.sound_volume}" />
+          <Slider Minimum="0" Maximum="1" SmallChange="0.05" LargeChange="0.2" Value="{Binding SoundVolume}" MaxWidth="240"
+                  HorizontalAlignment="Left" MinWidth="240" AutomationProperties.Name="{DynamicResource general.sound_volume}" />
+        </StackPanel>
+        <ToggleSwitch x:Name="TrackpadHapticsSwitch" Content="{DynamicResource general.trackpad_haptics}"
+                      IsChecked="{Binding TrackpadHaptics}" IsVisible="{Binding SupportsFeedbackEffects}" />
+        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource general.feedback_hint}"
+                   IsVisible="{Binding SupportsFeedbackEffects}" />
         <StackPanel>
           <TextBlock Classes="label" Text="{DynamicResource general.close_action}" />
           <ComboBox ItemsSource="{Binding CloseChoices}" SelectedItem="{Binding CloseChoice}" MinWidth="240" AutomationProperties.Name="{DynamicResource general.close_action}" />

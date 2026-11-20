@@ -28,6 +28,13 @@ public sealed class MacOSPlatformServices : IPlatformServices
     /// <summary>Whether Filee can change its visibility in the macOS Dock.</summary>
     public bool SupportsDockVisibility => true;
 
+    // Custom build: sound effects and trackpad haptics (MacOSFeedback).
+    public bool SupportsFeedbackEffects => true;
+
+    public void PlayFeedbackSound(FeedbackSound sound, double volume, string? file) => MacOSFeedback.Play(sound, volume, file);
+
+    public void PerformHapticTick() => MacOSFeedback.HapticTick();
+
     /// <summary>Changes whether Filee appears in the macOS Dock.</summary>
     public bool TrySetShowInDock(bool show) => NativeMethods.SetShowInDock(show);
 

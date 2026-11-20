@@ -691,6 +691,14 @@ public enum BackdropCanvas
     Landscape,
     /// <summary>4:5, taller than wide.</summary>
     Portrait,
+    /// <summary>Custom build: 9:16, a phone screen (stories, reels, TikTok).</summary>
+    Story,
+    /// <summary>
+    /// Custom build: a ratio of one's own, <see cref="BackdropOptions.RatioWidth"/> : <see cref="BackdropOptions.RatioHeight"/>.
+    /// </summary>
+    Custom,
+    /// <summary>Mandarin: the picture's own shape, grown evenly round it.</summary>
+    Original,
 }
 
 /// <summary>
@@ -700,6 +708,12 @@ public enum BackdropCanvas
 public sealed class BackdropOptions
 {
     public const int MaxPadding = 40, MaxCorners = 20, MaxShadow = 100;
+
+    /// <summary>Custom build: the largest number either side of a ratio of one's own may be (1080 × 1350 fits).</summary>
+    public const int MaxRatio = 10000;
+
+    /// <summary>Mandarin: the smallest the picture may be made on its canvas, in percent.</summary>
+    public const int MinScale = 10, MaxOffset = 100;
 
     [JsonConverter(typeof(LenientEnumJsonConverter<BackdropKind>))]
     public BackdropKind Kind { get; set; }
@@ -742,6 +756,29 @@ public sealed class BackdropOptions
     [JsonConverter(typeof(LenientEnumJsonConverter<BackdropCanvas>))]
     public BackdropCanvas Canvas { get; set; }
 
+    /// <summary>
+    /// Custom build: the width side of the ratio for <see cref="BackdropCanvas.Custom"/> (1–<see cref="MaxRatio"/>).
+    /// Only the ratio counts: 2 × 3 and 1000 × 1500 make the same canvas.
+    /// </summary>
+    public int RatioWidth { get; set; } = 2;
+
+    /// <summary>Custom build: the height side of the ratio for <see cref="BackdropCanvas.Custom"/>.</summary>
+    public int RatioHeight { get; set; } = 3;
+
+    /// <summary>
+    /// Mandarin: how large the picture is on its canvas, in percent (<see cref="MinScale"/>–100). The canvas keeps the
+    /// size it has at 100, so a smaller picture shows more of the background round it.
+    /// </summary>
+    public int Scale { get; set; } = 100;
+
+    /// <summary>
+    /// Mandarin: where the picture sits across the room round it, −100 (left edge) to 100 (right edge); 0 is centred.
+    /// </summary>
+    public int OffsetX { get; set; }
+
+    /// <summary>Mandarin: where the picture sits up and down, −100 (top edge) to 100 (bottom edge); 0 is centred.</summary>
+    public int OffsetY { get; set; }
+
     public BackdropOptions Clone() => (BackdropOptions)MemberwiseClone();
 
     /// <summary>
@@ -758,6 +795,11 @@ public sealed class BackdropOptions
         copy.Padding = Math.Clamp(Padding, 0, MaxPadding);
         copy.Corners = Math.Clamp(Corners, 0, MaxCorners);
         copy.Shadow = Math.Clamp(Shadow, 0, MaxShadow);
+        copy.RatioWidth = Math.Clamp(RatioWidth, 1, MaxRatio);
+        copy.RatioHeight = Math.Clamp(RatioHeight, 1, MaxRatio);
+        copy.Scale = Math.Clamp(Scale, MinScale, 100);
+        copy.OffsetX = Math.Clamp(OffsetX, -MaxOffset, MaxOffset);
+        copy.OffsetY = Math.Clamp(OffsetY, -MaxOffset, MaxOffset);
         return copy;
     }
 
@@ -880,7 +922,7 @@ public sealed class ImageOptions
 
     /// <summary>Whether the preset edits picture content, size, or playback speed.</summary>
     [JsonIgnore]
-    public bool EditsPicture => Resize != ResizeMode.None || Grayscale || TrimTransparent || RemoveBackground || MaxCompression || ChangesSpeed || CustomSize is not null || MinShortEdge is not null;
+    public bool EditsPicture => Resize != ResizeMode.None || Grayscale || AdjustsLight || TrimTransparent || RemoveBackground || MaxCompression || ChangesSpeed || CustomSize is not null || MinShortEdge is not null;
 
     /// <summary>Scale in percent when <see cref="Resize"/> is <see cref="ResizeMode.Percent"/>.</summary>
     public int ResizePercent { get; set; } = 50;
@@ -944,6 +986,25 @@ public sealed class ImageOptions
 
     /// <summary>Convert to grayscale.</summary>
     public bool Grayscale { get; set; }
+
+    /// <summary>Mandarin, Edit Photo: exposure in stops, −3 to 3 (0 leaves the picture as it is).</summary>
+    public double Exposure { get; set; }
+
+    /// <summary>Mandarin, Edit Photo: brightness, −100 to 100.</summary>
+    public int Brightness { get; set; }
+
+    /// <summary>Mandarin, Edit Photo: contrast, −100 to 100.</summary>
+    public int Contrast { get; set; }
+
+    /// <summary>Mandarin, Edit Photo: the bright tones made brighter (up) or held back (down), −100 to 100.</summary>
+    public int Highlights { get; set; }
+
+    /// <summary>Mandarin, Edit Photo: the dark tones lifted (up) or deepened (down), −100 to 100.</summary>
+    public int Shadows { get; set; }
+
+    /// <summary>Mandarin: any of the light adjustments is set.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool AdjustsLight => Exposure != 0 || Brightness != 0 || Contrast != 0 || Highlights != 0 || Shadows != 0;
 
     /// <summary>
     /// Crop away the fully transparent padding around a picture's visible pixels (PNGs exported with a margin, sprites,

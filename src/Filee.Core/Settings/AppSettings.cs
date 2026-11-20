@@ -40,7 +40,7 @@ public sealed class ThemeSettings
     public ThemeMode Mode { get; set; } = ThemeMode.System;
 
     /// <summary>Accent colour as <c>#RRGGBB</c>.</summary>
-    public string Accent { get; set; } = "#7F77DD";
+    public string Accent { get; set; } = "#F27A1E";
 
     /// <summary>Active curated preset key (e.g. "mint", "peach") when a coordinated light/dark pair is used; null for custom choices.</summary>
     public string? PresetKey { get; set; }
@@ -242,6 +242,57 @@ public sealed class AppSettings
     public bool Paused { get; set; }
 
     public ThemeSettings Theme { get; set; } = new();
+
+    /// <summary>
+    /// Custom build: the accent colour that was the default before the orange one, moved once to the orange default
+    /// (<see cref="OrangeAccentApplied"/>). A colour picked after that is kept.
+    /// </summary>
+    public const string PreviousDefaultAccent = "#7F77DD";
+
+    /// <summary>
+    /// Custom build: true once an accent still on <see cref="PreviousDefaultAccent"/> was moved to the orange default.
+    /// A missing value (settings from before it) reads as false, so it needs no schema step.
+    /// </summary>
+    public bool OrangeAccentApplied { get; set; }
+
+    /// <summary>
+    /// Custom build: true once the automatic update check was turned off, so an official release isn't installed over
+    /// this build. About → "Check for updates" turns it back on. A missing value reads as false.
+    /// </summary>
+    public bool CustomBuildUpdatesOff { get; set; }
+
+    /// <summary>
+    /// Mandarin: true once a macOS drag gesture still on Option alone was moved to Command (⌘ + drag opens the wheel).
+    /// A missing value reads as false.
+    /// </summary>
+    public bool CommandDragApplied { get; set; }
+
+    /// <summary>
+    /// Mandarin: the live wheel leaves out slices that can't do anything with the files (a PNG gets no "PNG" slice)
+    /// instead of greying them out. Off as in Filee; Mandarin's first start turns it on (MandarinLayoutApplied).
+    /// </summary>
+    public bool HideUnusableSlices { get; set; }
+
+    /// <summary>
+    /// Mandarin: true once its first start put the picture wheel in Mandarin's layout (actions on the front, the
+    /// converter on the back) and turned on <see cref="HideUnusableSlices"/>.
+    /// </summary>
+    public bool MandarinLayoutApplied { get; set; }
+
+    /// <summary>
+    /// Custom build: play sound effects (the donut opening, a slice under the pointer, a drop, a finished or failed
+    /// conversion). macOS only for now. A missing value reads as on.
+    /// </summary>
+    public bool SoundEffects { get; set; } = true;
+
+    /// <summary>Custom build: how loud the sound effects are, 0 to 1.</summary>
+    public double SoundVolume { get; set; } = 0.6;
+
+    /// <summary>
+    /// Custom build: a light tap on a Force Touch trackpad when the slice under the pointer changes on the donut.
+    /// macOS only. A missing value reads as on.
+    /// </summary>
+    public bool TrackpadHaptics { get; set; } = true;
 
     public DonutSettings Donut { get; set; } = new();
 

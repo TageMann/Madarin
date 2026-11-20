@@ -19,6 +19,20 @@ public partial class ImageEditWindow : Window
         AddHandler(KeyDownEvent, OnKeyDownFirst, RoutingStrategies.Tunnel);
         // The format first, so the keys work at once; Tab goes on down the window.
         Opened += (_, _) => TargetChoice.Focus();
+        // Mandarin: a floating panel; its own title bar moves it. The preview is read once it is open, and let go when
+        // it closes.
+        TitleBar.PointerPressed += (_, e) =>
+        {
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
+                && (e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) is null)
+                BeginMoveDrag(e);
+        };
+        Opened += async (_, _) =>
+        {
+            if (DataContext is ImageEditViewModel vm)
+                await vm.LoadPreviewAsync();
+        };
+        Closed += (_, _) => (DataContext as ImageEditViewModel)?.ClosePreview();
     }
 
     /// <summary>
