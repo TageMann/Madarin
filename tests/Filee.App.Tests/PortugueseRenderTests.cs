@@ -130,7 +130,7 @@ public class PortugueseRenderTests
         {
             window.Show();
             RenderTests.Pump();
-            var text = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == loc["app.tagline"]);
+            var text = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == loc["app.byline"]);
             var end = text.TranslatePoint(new Point(text.Bounds.Width, 0), window)!.Value.X;
             Assert.True(end <= 216, $"{language}: tagline extends beyond the navigation padding ({end})");
         }

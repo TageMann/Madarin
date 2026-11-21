@@ -243,8 +243,8 @@
     <Setter Property="Height" Value="20" />
     <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Background" Value="White" />
-    <Setter Property="BorderBrush" Value="#26000000" />
-    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="BorderBrush" Value="#38000000" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Transitions">
       <Transitions>
         <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />

@@ -2,6 +2,7 @@
 // slice and its size pill, its converter face, the Add BG panel with a built-in picture behind on 9:16, and Edit Photo
 // with its light adjusted, in light and dark.
 
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Filee.App.Services;
@@ -173,40 +174,54 @@ public class MandarinLookTests
     {
         TestServices.EnsureInitialized("en");
         var theme = AppHost.Get<ThemeService>();
-        var store = AppHost.Get<UserDataStore>();
-        var folder = Path.Combine(Path.GetTempPath(), "mandarin-look-" + Guid.NewGuid().ToString("N"));
         var suffix = dark ? "dark" : "light";
         try
         {
             theme.Apply(new ThemeSettings { Mode = dark ? ThemeMode.Dark : ThemeMode.Light }, "en");
-            var vm = AppHost.Get<RadialViewModel>();
-            vm.Load([Photo(folder, "tangerine tree.png")], clickMode: true);
-            var window = new RadialWindow { DataContext = vm };
+            var donut = new DonutMenu
+            {
+                GlassStyle = true,
+                CenterPill = "2.2 MB",
+                Items = new[] { "JPG", "WEBP", "HEIC", "TIFF", "AVIF", "BMP", "PDF", "DOCX" }.Select(l => new DonutItem { Id = l, Label = l }).ToList(),
+            };
+            donut.Bind(DonutMenu.AccentBrushProperty, donut.GetResourceObservable("AccentBrush"));
+            var window = new Avalonia.Controls.Window
+            {
+                Content = donut, Width = 460, Height = 460,
+                Background = Avalonia.Media.Brush.Parse(dark ? "#3A2A3A" : "#F2B58A"),
+            };
             window.Show();
-            var donut = window.DonutControl;
+            Dispatcher.UIThread.RunJobs();
+            void Run(double seconds)
+            {
+                for (var t = 0.0; t < seconds; t += 1 / 60.0)
+                    donut.Advance(1 / 60.0);
+                Dispatcher.UIThread.RunJobs();
+            }
+
             donut.BeginProgress();
-            Wait(() => false, 1);
+            Run(0.9);
             // Nothing known yet: an arc goes round, no percentage is made up.
             Assert.True(donut.IsProgressIndeterminate);
             RenderTests.Save(window, $"mandarin-progress-waiting-{suffix}.png");
             donut.SetProgress(0.62);
-            Wait(() => false, 1);
+            Run(1);
             Assert.False(donut.IsProgressIndeterminate);
             RenderTests.Save(window, $"mandarin-progress-{suffix}.png");
             var finished = false;
             donut.CompleteProgress(DonutProgressOutcome.Succeeded, () => finished = true);
-            Wait(() => donut.ShownOutcome is not null, 3);
-            Wait(() => false, 1);
+            for (var t = 0.0; donut.ShownOutcome is null && t < 3; t += 1 / 60.0)
+                donut.Advance(1 / 60.0);
+            Run(0.4);
             Assert.Equal(DonutProgressOutcome.Succeeded, donut.ShownOutcome);
             RenderTests.Save(window, $"mandarin-progress-done-{suffix}.png");
-            Wait(() => finished, 4);
+            Run(3);
             Assert.True(finished);
             window.Close();
         }
         finally
         {
             theme.Apply(new ThemeSettings(), "en");
-            try { Directory.Delete(folder, true); } catch (IOException) { }
         }
     }
 

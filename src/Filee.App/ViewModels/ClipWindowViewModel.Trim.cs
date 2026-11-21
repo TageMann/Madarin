@@ -14,6 +14,9 @@ public sealed partial class ClipWindowViewModel
     /// <summary>A little sound kept either side of where the silence stops, so a word's first breath isn't clipped.</summary>
     internal const double SilenceMargin = 0.08;
 
+    /// <summary>The window is Mandarin's Trim Audio (the whole sound starts chosen).</summary>
+    internal bool IsTrimAudio => _tool.Id == Filee.Core.Presets.BuiltInData.TrimAudioId;
+
     /// <summary>"0:41.74 selected".</summary>
     public string SelectedText => _loc.Format("trim.selected", LengthText);
 

@@ -590,7 +590,9 @@ public sealed partial class ClipWindowViewModel : ObservableObject, IDisposable
         ViewEnd = video.Duration;
         SelectedLane = ClipLane.Video;
         SelectedIndices = [];
-        var first = _ringtone ? Math.Clamp(_tool.Media.RingtoneLength, MediaOptions.MinRingtoneLength, MediaOptions.MaxRingtoneLength) : FirstClipLength;
+        // Mandarin's Trim Audio starts with the whole sound chosen: the handles are moved in from its ends.
+        var first = _ringtone ? Math.Clamp(_tool.Media.RingtoneLength, MediaOptions.MinRingtoneLength, MediaOptions.MaxRingtoneLength)
+            : IsTrimAudio ? video.Duration : FirstClipLength;
         // In ringtone mode the first part starts where the preset's own part does.
         var from = _ringtone ? Math.Clamp(_tool.Media.RingtoneStart, 0, Math.Max(0, video.Duration - first)) : 0;
         UseCutter(new ClipCutter(video.Duration, new ClipRange(from, Math.Min(video.Duration, from + first))));
