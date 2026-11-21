@@ -29,7 +29,7 @@ public sealed class TrayService(UserDataStore store, ILocalizer loc, IPlatformSe
             store.Settings.Paused = !store.Settings.Paused;
             store.SaveSettings();
         };
-        _login = new NativeMenuItem { ToggleType = NativeMenuItemToggleType.CheckBox };
+        _login = new NativeMenuItem { ToggleType = MenuItemToggleType.CheckBox };
         _login.Click += (_, _) =>
         {
             store.Settings.StartWithSystem = !store.Settings.StartWithSystem;
