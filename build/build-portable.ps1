@@ -191,7 +191,7 @@ if ($Runtime.StartsWith('osx-')) {
     $temporaryImage = "$diskImage.$([Guid]::NewGuid().ToString('N')).partial.dmg"
     $dmgFolder = Join-Path $root 'installer/macos/dmg'
     Invoke-Checked 'Create dmg' {
-        python3 -m dmgbuild -s (Join-Path $dmgFolder 'settings.py') -D "app=$appBundle" -D "dir=$dmgFolder" Mandarin $temporaryImage | Out-Null
+        python3 -m dmgbuild -s (Join-Path $dmgFolder 'settings.py') -D "app=$appBundle" -D "dir=$dmgFolder" "Mandarin by Tage" $temporaryImage | Out-Null
     }
     Move-Item -LiteralPath $temporaryImage -Destination $diskImage
     $packages += $diskImage

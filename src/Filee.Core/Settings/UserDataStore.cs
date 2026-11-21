@@ -54,7 +54,7 @@ public sealed class UserDataStore
     /// top.
     /// </summary>
     public static readonly string[] MandarinImageActions =
-        ["compress-image", "tool-metadata", "tool-image-edit", "tool-annotate", "tool-background", "tool-crop", "tool-hide"];
+        ["compress-image", "tool-metadata", "tool-image-edit", "tool-annotate", "tool-background", "tool-crop", "tool-hide", "merge-pdf"];
 
     /// <summary>Mandarin's picture wheel, back: the converter.</summary>
     public static readonly string[] MandarinImageFormats =
@@ -207,6 +207,13 @@ public sealed class UserDataStore
             }
             libraryChanged |= AddTrimAudio();
             Settings.MenuBarFirstApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
+        // Mandarin 2.1: "Merge PDF" (marked pictures into one PDF) on the picture wheel's front, once.
+        if (mandarinProfile && !Settings.MergePdfApplied)
+        {
+            libraryChanged |= AddMergePdf();
+            Settings.MergePdfApplied = true;
             customChanged = File.Exists(SettingsPath);
         }
         // Custom build: an official update would replace this build, so the automatic check is turned off, once.
@@ -388,6 +395,21 @@ public sealed class UserDataStore
     }
 
     public Preset? FindPreset(string id) => Presets.FirstOrDefault(p => p.Id == id);
+
+    /// <summary>
+    /// Mandarin 2.1: "Merge PDF" last on the picture wheel's front (it turns the marked pictures into one PDF), unless the
+    /// wheel already has it. True when the library changed.
+    /// </summary>
+    internal bool AddMergePdf()
+    {
+        if (FindPreset("merge-pdf") is null || Profiles.FirstOrDefault(p => p.Id == "images") is not { } images
+            || images.PresetIds.Contains("merge-pdf") || images.BackPresetIds?.Contains("merge-pdf") == true)
+            return false;
+        if (images.PresetIds.Count >= ToolbarProfile.MaxSlices)
+            images.PresetIds.RemoveAt(images.PresetIds.Count - 1);
+        images.PresetIds.Add("merge-pdf");
+        return true;
+    }
 
     /// <summary>
     /// Mandarin 2: Trim Audio in the library (after "Cut a clip") and first on the audio wheel's front, the last slice

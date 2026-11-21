@@ -647,14 +647,16 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
     /// </summary>
     public void ShowBackgroundWindow(IReadOnlyList<string> files, Preset preset)
     {
-        var pictures = files.Where(f => FormatRegistry.Detect(f) is { } format && HideService.CanOpen(format.Id)).ToList();
+        var pictures = files.Where(f => FormatRegistry.Detect(f) is { } format && format.Id != "gif" && HideService.CanOpen(format.Id)).ToList();
         if (pictures.Count == 0)
             return;
         _backgroundWindow?.Close();
         var conversions = services.GetRequiredService<ConversionService>();
+        BackgroundWindow? win = null;
+        // Mandarin: each saved picture shows the wheel's glass progress ring over the panel, not a toast in the corner.
         var vm = new BackgroundViewModel(pictures, preset, loc, services.GetRequiredService<UserDataStore>(),
-            (path, conversion) => conversions.Start([path], conversion), services.GetService<ILogger<BackgroundViewModel>>());
-        var win = new BackgroundWindow { DataContext = vm };
+            (path, conversion) => StartWithRing([path], conversion, win), services.GetService<ILogger<BackgroundViewModel>>());
+        win = new BackgroundWindow { DataContext = vm };
         PrepareWindow(win);
         win.Closed += (_, _) =>
         {
@@ -665,6 +667,37 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
         _backgroundWindow = win;
         win.Show();
         win.Activate();
+    }
+
+    private ProgressRingWindow? _ring;
+
+    internal ProgressRingWindow? Ring => _ring;
+
+    /// <summary>
+    /// Mandarin: starts a conversion shown by the glass progress ring, centred over <paramref name="over"/> (the panel it
+    /// came from), instead of the toast. A job still on the ring when another starts goes on in the toast; a failed one
+    /// is shown in the toast, which says what went wrong.
+    /// </summary>
+    public JobViewModel? StartWithRing(IReadOnlyList<string> files, Preset conversion, Window? over)
+    {
+        var conversions = services.GetRequiredService<ConversionService>();
+        var job = conversions.Start(files, conversion, showInToast: false);
+        if (job is null)
+            return null;
+        _ring?.HandOff();
+        var ring = new ProgressRingWindow();
+        PrepareWindow(ring);
+        ring.PlaceOver(over);
+        ring.Closed += (_, _) =>
+        {
+            if (_ring == ring)
+                _ring = null;
+        };
+        _ring = ring;
+        ring.Show();
+        ring.PlaceOver(over);
+        ring.Track(job, conversions.ShowInToast);
+        return job;
     }
 
     /// <summary>

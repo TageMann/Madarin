@@ -1,5 +1,5 @@
 # dmgbuild settings for the macOS disk image (build/build-portable.ps1 passes -D app=<Filee.app> -D dir=<this folder>).
-# The window shows 600x456 points under its title bar; background.png is drawn for it and background@2x.png for Retina
+# The window shows 600x456 points under its title bar; mandarin-background.png is drawn for it and its @2x for Retina
 # screens (dmgbuild combines the two). The design sits in the top 600x400: the bottom 56 points are plain background,
 # covered when Finder shows its path and status bars (a Finder-wide choice the disk image can't turn off).
 # Icon positions are the centres of the slots drawn on the background.
@@ -14,7 +14,7 @@ format = "UDZO"
 filesystem = "HFS+"
 files = [app, (os.path.join(here, "INSTALL.txt"), "INSTALL.txt")]
 symlinks = {"Applications": "/Applications"}
-background = os.path.join(here, "background.png")
+background = os.path.join(here, "mandarin-background.png")
 window_rect = ((200, 120), (600, 488))
 default_view = "icon-view"
 show_status_bar = False

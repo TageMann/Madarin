@@ -285,6 +285,9 @@ public sealed class AppSettings
     /// </summary>
     public bool MenuBarFirstApplied { get; set; }
 
+    /// <summary>Mandarin 2.1: true once "Merge PDF" was put on the picture wheel. A missing value reads as false.</summary>
+    public bool MergePdfApplied { get; set; }
+
     /// <summary>
     /// Custom build: play sound effects (the donut opening, a slice under the pointer, a drop, a finished or failed
     /// conversion). macOS only for now. A missing value reads as on.

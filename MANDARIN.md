@@ -26,7 +26,11 @@ github.com/KnifeLemon/Filee), used under the MIT license.
   and Graphite.
 - **Add BG:** the controls are on the left and the picture is large on the right. It no longer appears for GIFs.
 - **Error sound:** tools play the Bleep sound when something can't be done.
-- New icon and new installer artwork.
+- New icon and new installer artwork. The icon fills Apple's rounded-square shape, so macOS doesn't put it in a grey
+  frame.
+- **Merge PDF** on the picture wheel: mark several pictures in Finder, drag them onto it, choose their order, and they
+  become one PDF.
+- **Add BG** shows the glass progress ring over the panel while it saves, instead of the box in the corner.
 
 ## What's new
 

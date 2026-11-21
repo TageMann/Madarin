@@ -58,4 +58,20 @@ public class TrimAudioPresetTests
         Assert.Equal(Filee.Core.Profiles.ToolbarProfile.MaxSlices, audio.PresetIds.Count);
         Assert.DoesNotContain(last, audio.PresetIds);
     }
+
+    [Fact]
+    public void Merge_pdf_lands_once_on_the_picture_wheel()
+    {
+        using var dir = new TempDir();
+        var store = new UserDataStore(dir.Path);
+        store.Load();
+        var images = store.Profiles.Single(p => p.Id == "images");
+        images.PresetIds.Remove("merge-pdf");
+        images.BackPresetIds?.Remove("merge-pdf");
+
+        Assert.True(store.AddMergePdf());
+        Assert.Equal("merge-pdf", images.PresetIds[^1]);
+        Assert.False(store.AddMergePdf());
+        Assert.Single(images.PresetIds, id => id == "merge-pdf");
+    }
 }
