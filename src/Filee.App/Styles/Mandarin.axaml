@@ -1,105 +1,110 @@
 <!--
-  Mandarin's look: warm orange-to-peach glass panels (the Edit Photo, Add BG and Trim Audio designs), applied over the
-  Soft style to every window that isn't in the Material You style.
+  Mandarin's look: neutral liquid-glass panels, applied over the Soft style to every window that isn't in the Material
+  You style.
 
   The rules it keeps (liquid glass, translated to Avalonia):
-    • The window is the backdrop: a warm gradient from tangerine at the top to peach and soft pink at the bottom.
-    • Surfaces on it are glass: near-white at a low alpha with a brighter rim at the top. They carry no colour of their
-      own, so the warmth shows through them.
+    • The material is colourless: near-white frosted glass in light mode, graphite in dark. Colour comes from what is
+      behind it and from the accent (Settings > Theme), used as a highlight: the default button, a switch, a slider's
+      lit track, the wheel's lit slice, the progress ring.
+    • Surfaces on a panel are glass: white at a low alpha with a brighter rim at the top.
     • Children of a glass card paint no second surface: rows and groups inside are separated by space and type.
-    • Text stays readable: titles a warm near-black, section headings a deep red-orange, values in a mono-ish weight.
-    • Only the accent (orange, Settings > Theme) and the lit slider track carry strong colour.
+    • Content stays readable: text is near-black / near-white; the strongest glass is kept for floating controls.
+    • macOS: the settings window lets the desktop show through, blurred (vibrancy), unless Reduce Transparency is on.
 
   Colours that differ between light and dark live in the theme dictionaries below.
 -->
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="using:Filee.App.Views">
 
   <Styles.Resources>
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
           <LinearGradientBrush x:Key="MandarinWindowBrush" StartPoint="20%,0%" EndPoint="80%,100%">
-            <GradientStop Color="#FFFFC53D" Offset="0" />
-            <GradientStop Color="#FFFFA234" Offset="0.30" />
-            <GradientStop Color="#FFFFA77E" Offset="0.68" />
-            <GradientStop Color="#FFF5B4C6" Offset="1" />
+            <GradientStop Color="#FFFDFDFE" Offset="0" />
+            <GradientStop Color="#FFF5F5F8" Offset="0.55" />
+            <GradientStop Color="#FFEEEFF3" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinVibrantBrush" StartPoint="20%,0%" EndPoint="80%,100%">
+            <GradientStop Color="#D9FDFDFE" Offset="0" />
+            <GradientStop Color="#CCF5F5F8" Offset="1" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="MandarinGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#73FFFFFF" Offset="0" />
-            <GradientStop Color="#4DFFFFFF" Offset="1" />
+            <GradientStop Color="#B3FFFFFF" Offset="0" />
+            <GradientStop Color="#80FFFFFF" Offset="1" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="MandarinRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#D9FFFFFF" Offset="0" />
-            <GradientStop Color="#4DFFFFFF" Offset="1" />
+            <GradientStop Color="#FFFFFFFF" Offset="0" />
+            <GradientStop Color="#1F000000" Offset="1" />
           </LinearGradientBrush>
-          <SolidColorBrush x:Key="MandarinControlBrush" Color="#5CFFFFFF" />
-          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#8CFFFFFF" />
-          <SolidColorBrush x:Key="MandarinControlPressedBrush" Color="#33FFFFFF" />
-          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#26000000" />
-          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FF4A2208" />
-          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FF3A1D0C" />
-          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#B33A1D0C" />
-          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FFC8320B" />
-          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF140C08" />
-          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#33FFFFFF" />
-          <BoxShadows x:Key="MandarinPanelShadow">0 2 6 0 #1F7A2A00, 0 14 34 0 #297A2A00</BoxShadows>
-          <!-- Fluent's inputs on the warm glass -->
-          <SolidColorBrush x:Key="TextControlBackground" Color="#66FFFFFF" />
-          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#8CFFFFFF" />
-          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#E6FFFFFF" />
-          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#80FFFFFF" />
-          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#B3FFFFFF" />
-          <SolidColorBrush x:Key="ComboBoxBackground" Color="#66FFFFFF" />
-          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#8CFFFFFF" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#80FFFFFF" />
-          <SolidColorBrush x:Key="SliderTrackFill" Color="#33000000" />
-          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40000000" />
-          <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#4D000000" />
+          <SolidColorBrush x:Key="MandarinControlBrush" Color="#CCFFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#F2FFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlPressedBrush" Color="#0F000000" />
+          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#1F000000" />
+          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FF1D1D1F" />
+          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FF1D1D1F" />
+          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#FF6E6E73" />
+          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FF48484A" />
+          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF1C1C1E" />
+          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#12000000" />
+          <BoxShadows x:Key="MandarinPanelShadow">0 1 3 0 #1A000000, 0 18 40 0 #2E000000</BoxShadows>
+          <!-- Fluent's inputs on the glass -->
+          <SolidColorBrush x:Key="TextControlBackground" Color="#CCFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#F2FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FFFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#1F000000" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#33000000" />
+          <SolidColorBrush x:Key="ComboBoxBackground" Color="#CCFFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F2FFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#1F000000" />
+          <SolidColorBrush x:Key="SliderTrackFill" Color="#1F000000" />
+          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#29000000" />
+          <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#33000000" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <LinearGradientBrush x:Key="MandarinWindowBrush" StartPoint="20%,0%" EndPoint="80%,100%">
-            <GradientStop Color="#FF43260F" Offset="0" />
-            <GradientStop Color="#FF35200F" Offset="0.35" />
-            <GradientStop Color="#FF2C1A18" Offset="0.7" />
-            <GradientStop Color="#FF261A24" Offset="1" />
+            <GradientStop Color="#FF2E2E33" Offset="0" />
+            <GradientStop Color="#FF242428" Offset="0.55" />
+            <GradientStop Color="#FF1C1C20" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinVibrantBrush" StartPoint="20%,0%" EndPoint="80%,100%">
+            <GradientStop Color="#CC2E2E33" Offset="0" />
+            <GradientStop Color="#D91C1C20" Offset="1" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="MandarinGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#2EFFFFFF" Offset="0" />
-            <GradientStop Color="#17FFFFFF" Offset="1" />
+            <GradientStop Color="#1FFFFFFF" Offset="0" />
+            <GradientStop Color="#0FFFFFFF" Offset="1" />
           </LinearGradientBrush>
           <LinearGradientBrush x:Key="MandarinRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Color="#59FFFFFF" Offset="0" />
-            <GradientStop Color="#14FFFFFF" Offset="1" />
+            <GradientStop Color="#4DFFFFFF" Offset="0" />
+            <GradientStop Color="#12FFFFFF" Offset="1" />
           </LinearGradientBrush>
-          <SolidColorBrush x:Key="MandarinControlBrush" Color="#21FFFFFF" />
-          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#38FFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlBrush" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="MandarinControlHoverBrush" Color="#33FFFFFF" />
           <SolidColorBrush x:Key="MandarinControlPressedBrush" Color="#14FFFFFF" />
-          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#26FFFFFF" />
-          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FFFFE9DA" />
-          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FFF7EAE0" />
-          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#B3F7EAE0" />
-          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FFFF9A5C" />
-          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF0C0806" />
-          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#1FFFFFFF" />
-          <BoxShadows x:Key="MandarinPanelShadow">0 2 6 0 #40000000, 0 14 34 0 #59000000</BoxShadows>
+          <SolidColorBrush x:Key="MandarinHairlineBrush" Color="#24FFFFFF" />
+          <SolidColorBrush x:Key="MandarinTitleBrush" Color="#FFF5F5F7" />
+          <SolidColorBrush x:Key="MandarinTextBrush" Color="#FFF5F5F7" />
+          <SolidColorBrush x:Key="MandarinMutedBrush" Color="#FF98989D" />
+          <SolidColorBrush x:Key="MandarinSectionBrush" Color="#FFC7C7CC" />
+          <SolidColorBrush x:Key="MandarinWellBrush" Color="#FF0E0E10" />
+          <SolidColorBrush x:Key="MandarinCloseBrush" Color="#1AFFFFFF" />
+          <BoxShadows x:Key="MandarinPanelShadow">0 1 3 0 #40000000, 0 18 40 0 #66000000</BoxShadows>
           <SolidColorBrush x:Key="TextControlBackground" Color="#1FFFFFFF" />
           <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#2EFFFFFF" />
-          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#E62A1A14" />
-          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#33FFFFFF" />
-          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#4DFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF2C2C30" />
+          <SolidColorBrush x:Key="TextControlBorderBrush" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#47FFFFFF" />
           <SolidColorBrush x:Key="ComboBoxBackground" Color="#1FFFFFFF" />
           <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#2EFFFFFF" />
-          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#33FFFFFF" />
-          <SolidColorBrush x:Key="SliderTrackFill" Color="#33FFFFFF" />
-          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#40FFFFFF" />
+          <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFill" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#3DFFFFFF" />
           <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#4DFFFFFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      <!-- Sliders: the lit track the warm red-orange of the designs, a white pill thumb (Fluent's own keys) -->
-      <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FFFF4A1C" />
-      <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFFF5A26" />
-      <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FFE8400F" />
+      <!-- Sliders: the lit track is the accent (SoftPalette sets SliderTrackValueFill), the thumb a white pill -->
       <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFFFFFFF" />
       <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFFFFFFF" />
       <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFF5F1EE" />
@@ -114,10 +119,14 @@
     </ResourceDictionary>
   </Styles.Resources>
 
-  <!-- ───────── The window: the warm backdrop every glass surface sits on ───────── -->
+  <!-- ───────── The window: the frosted backdrop every glass surface sits on ───────── -->
   <Style Selector="Window:not(.material-you)">
     <Setter Property="Background" Value="{DynamicResource MandarinWindowBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
+  </Style>
+  <!-- macOS vibrancy (the settings window): the desktop shows through, blurred, under a frosted wash. -->
+  <Style Selector="Window.vibrant:not(.material-you)">
+    <Setter Property="Background" Value="{DynamicResource MandarinVibrantBrush}" />
   </Style>
   <Style Selector="Window:not(.material-you) TextBlock.caption:not(.danger):not(.warning), Window:not(.material-you) TextBlock.label:not(.danger):not(.warning), Window:not(.material-you) TextBlock.muted:not(.danger):not(.warning)">
     <Setter Property="Foreground" Value="{DynamicResource MandarinMutedBrush}" />
@@ -134,7 +143,7 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <!-- A group's heading ("Light", "Background"): a deep red-orange, as in the designs -->
+  <!-- A group's heading ("Light", "Background"): a strong grey, quieter than the title -->
   <Style Selector="TextBlock.section">
     <Setter Property="FontSize" Value="13.5" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -254,6 +263,21 @@
     <Setter Property="Background" Value="{DynamicResource MandarinControlBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
     <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <!-- ───────── Progress: a thin glass track, the accent filling it ───────── -->
+  <Style Selector="Window:not(.material-you) ProgressBar">
+    <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <!-- The toast floats over whatever is on screen: its cards are the panel's own frosted surface, not see-through glass,
+       so the text reads over any wallpaper. -->
+  <Style Selector="v|ToastWindow:not(.material-you) Border.card">
+    <Setter Property="Background" Value="{DynamicResource MandarinWindowBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="CornerRadius" Value="18" />
+    <Setter Property="BoxShadow" Value="{DynamicResource MandarinPanelShadow}" />
   </Style>
 
   <!-- Reduce motion (Settings > Theme) keeps the thumb still, as the Soft style does. -->

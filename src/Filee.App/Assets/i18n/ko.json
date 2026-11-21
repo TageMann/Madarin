@@ -2017,5 +2017,18 @@
   "gallery.export_none": "프리셋을 하나 이상 고르거나 원형 툴바를 골라 주세요.",
   "gallery.export_warnings": "갤러리에 이런 경고가 표시돼요:",
   "gallery.only_my_language": "내 언어로 된 것만",
-  "gallery.written_in": "{0}(으)로 작성됨"
+  "gallery.written_in": "{0}(으)로 작성됨",
+  "tray.launch_at_login": "Launch at Login",
+  "tray.about": "About Mandarin",
+  "preset.trim_audio": "Trim Audio",
+  "preset.trim_audio.donut": "Trim",
+  "trim.selected": "{0} selected",
+  "trim.start": "Start {0}",
+  "trim.end": "End {0}",
+  "trim.hint": "Drag the ends to trim",
+  "trim.play_selection": "Play Selected Range",
+  "trim.silent_ends": "Trim silent ends automatically",
+  "trim.apply": "Apply",
+  "app.byline": "by Tage",
+  "about.credit": "Mandarin, by Tage Hogness. Built with source code from Filee (filee.sh, github.com/KnifeLemon/Filee) by KnifeLemon and contributors, used under the MIT license."
 }

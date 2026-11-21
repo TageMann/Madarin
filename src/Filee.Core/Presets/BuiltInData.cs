@@ -237,6 +237,19 @@ public static class BuiltInData
         },
     ];
 
+    /// <summary>Mandarin: "Trim Audio", the clip tool in a small window made for sounds (a waveform and two ends).</summary>
+    public const string TrimAudioId = "tool-trim-audio";
+
+    /// <summary>
+    /// Mandarin's "Trim Audio": the part of a sound between two handles, saved as "{name} Trimmed" in its own format;
+    /// the original is kept. Put on the audio wheel by Mandarin 2's first start, not in Filee's default library.
+    /// </summary>
+    public static Preset TrimAudioPreset() => new()
+    {
+        Id = TrimAudioId, NameKey = "preset.trim_audio", TargetFormat = SameAsSource,
+        Kind = PresetKind.Tool, Tool = Preset.ClipTool, Output = { FileNamePattern = "{name} Trimmed" },
+    };
+
     /// <summary>
     /// Minecraft packs and Modrinth modpacks (#824, #898, added to the library in settings schema 62) and Garry's Mod
     /// addons (#1526, schema 97): in the palette only, after "TAR", in the Games field (off in a new install).

@@ -2,12 +2,13 @@
 //
 // With GlassStyle on (the live wheel and its previews), the donut is drawn as:
 //   • a glass plate: a translucent ring with a polished rim, behind the slices;
-//   • each slice a rounded glass button inset in the plate, a near-white peach tint with a light rim at the top;
-//   • the slice under the pointer a warm orange gradient with a white label;
+//   • each slice a rounded glass button inset in the plate: clear, near-white (graphite in dark mode), with a sheen
+//     across its top and a polished rim;
+//   • the slice under the pointer filled with the accent colour (Mandarin orange by default) as colour inside the glass;
 //   • a clear hole in the middle, so the file being dragged stays visible behind it, and in it only a small glass
 //     pill with the files' size ("2.2 MB", CenterPill).
-// The colour of the glass is near white in light mode and a warm smoke in dark mode, never the accent: as with
-// liquid glass, the colour comes from what is behind it, and only the lit slice is orange. The slices are opaque
+// The glass itself is colourless, never the accent: as with liquid glass, the colour comes from what is behind it, and
+// only the lit slice takes the accent. The slices are opaque
 // enough that their labels read on any wallpaper.
 //
 // GlassStyle off draws the donut exactly as before (tests and the Theme page's small preview use it that way).
@@ -49,6 +50,20 @@ public sealed partial class DonutMenu
 
     private bool IsDarkGlass => ActualThemeVariant == ThemeVariant.Dark;
 
+    /// <summary>
+    /// macOS Reduce transparency: the glass is drawn solid (read when the app starts, see App). Slices, plate and pill
+    /// keep their shapes and rims.
+    /// </summary>
+    public static bool SolidGlass { get; set; }
+
+    private static readonly IImmutableBrush LightSliceSolid = Linear((0xFFFFFFFF, 0), (0xFFF5F5F7, 1));
+    private static readonly IImmutableBrush DarkSliceSolid = Linear((0xFF3A3A3F, 0), (0xFF2C2C30, 1));
+    private static readonly IImmutableBrush LightPlateSolid = Linear((0xFFF2F2F5, 0), (0xFFE8E8EC, 1));
+    private static readonly IImmutableBrush DarkPlateSolid = Linear((0xFF232327, 0), (0xFF1C1C1F, 1));
+
+    private IImmutableBrush SliceFill => SolidGlass ? IsDarkGlass ? DarkSliceSolid : LightSliceSolid : IsDarkGlass ? DarkSlice : LightSlice;
+    private IImmutableBrush PlateFill => SolidGlass ? IsDarkGlass ? DarkPlateSolid : LightPlateSolid : IsDarkGlass ? DarkPlate : LightPlate;
+
     // Immutable brushes: shared by every donut and free of any thread (a mutable brush belongs to the one that made it).
     private static IImmutableBrush Linear(params (uint Argb, double Offset)[] stops) =>
         new ImmutableLinearGradientBrush(
@@ -56,26 +71,78 @@ public sealed partial class DonutMenu
             startPoint: new RelativePoint(0.15, 0, RelativeUnit.Relative),
             endPoint: new RelativePoint(0.85, 1, RelativeUnit.Relative));
 
-    // ── The glass, light and dark ──
-    private static readonly IImmutableBrush LightSlice = Linear((0xF5FFFAF5, 0), (0xEBFFE9DA, 0.55), (0xE6FFDCC6, 1));
-    private static readonly IImmutableBrush DarkSlice = Linear((0xE84A3A31, 0), (0xE23A2C25, 0.55), (0xDE2C211C, 1));
-    private static readonly IImmutableBrush LightPlate = Linear((0x70FFFFFF, 0), (0x4DFFF0E6, 0.5), (0x40FFE2D0, 1));
-    private static readonly IImmutableBrush DarkPlate = Linear((0x5C3A2C25, 0), (0x4D2A201B, 1));
-    private static readonly IImmutableBrush LightRim = Linear((0xF2FFFFFF, 0), (0x80FFFFFF, 0.45), (0x40FFFFFF, 1));
-    private static readonly IImmutableBrush DarkRim = Linear((0x73FFFFFF, 0), (0x26FFFFFF, 0.5), (0x14FFFFFF, 1));
-    private static readonly IImmutableBrush Lit = Linear((0xFFFFA24A, 0), (0xFFFF7A1E, 0.5), (0xFFE5480C, 1));
-    private static readonly IImmutableBrush LitRim = Linear((0xB3FFFFFF, 0), (0x33FFFFFF, 0.5), (0x1AFFFFFF, 1));
-    private static readonly IImmutableBrush LightPill = Linear((0xF2FFFFFF, 0), (0xE6FFF3EA, 1));
-    private static readonly IImmutableBrush DarkPill = Linear((0xEB4A3A31, 0), (0xE62C211C, 1));
+    // ── The glass, light and dark: colourless, as with liquid glass; colour comes from behind and from the lit slice ──
+    private static readonly IImmutableBrush LightSlice = Linear((0xD9FFFFFF, 0), (0xC7FBFBFD, 0.55), (0xBDF2F3F7, 1));
+    private static readonly IImmutableBrush DarkSlice = Linear((0xB33C3C42, 0), (0xA6303036, 0.55), (0x9E26262B, 1));
+    private static readonly IImmutableBrush LightPlate = Linear((0x66FFFFFF, 0), (0x47F7F8FB, 0.5), (0x38EEF0F5, 1));
+    private static readonly IImmutableBrush DarkPlate = Linear((0x592E2E33, 0), (0x47222226, 1));
+    private static readonly IImmutableBrush LightRim = Linear((0xFFFFFFFF, 0), (0x8CFFFFFF, 0.45), (0x4DFFFFFF, 1));
+    private static readonly IImmutableBrush DarkRim = Linear((0x80FFFFFF, 0), (0x2EFFFFFF, 0.5), (0x17FFFFFF, 1));
+    private static readonly IImmutableBrush LitRim = Linear((0xCCFFFFFF, 0), (0x40FFFFFF, 0.5), (0x1FFFFFFF, 1));
+    private static readonly IImmutableBrush LightPill = Linear((0xF2FFFFFF, 0), (0xE0F6F7FA, 1));
+    private static readonly IImmutableBrush DarkPill = Linear((0xE6404046, 0), (0xDE2A2A2F, 1));
     private static readonly IImmutableBrush HoleTint = new ImmutableSolidColorBrush(Color.FromUInt32(0x14FFFFFF));
     private static readonly IImmutableSolidColorBrush Hairline = new ImmutableSolidColorBrush(Color.FromUInt32(0x1F000000));
-    private static readonly IImmutableSolidColorBrush GlassLabel = new ImmutableSolidColorBrush(Color.FromUInt32(0xFF2B1B12));
-    private static readonly IImmutableSolidColorBrush GlassLabelDark = new ImmutableSolidColorBrush(Color.FromUInt32(0xFFF6EDE6));
+    private static readonly IImmutableSolidColorBrush GlassLabel = new ImmutableSolidColorBrush(Color.FromUInt32(0xFF1D1D1F));
+    private static readonly IImmutableSolidColorBrush GlassLabelDark = new ImmutableSolidColorBrush(Color.FromUInt32(0xFFF5F5F7));
 
-    /// <summary>The label of the lit slice: white on the orange glass, the theme's own otherwise.</summary>
-    private IBrush? HotLabelBrush => GlassStyle ? Brushes.White : OnAccentBrush;
+    /// <summary>
+    /// The light inside each glass button: a sheen across its top that fades out by the middle, and a faint shade at
+    /// its bottom, so the button reads as a lens with depth rather than a flat tint.
+    /// </summary>
+    private static readonly IImmutableBrush Sheen = new ImmutableLinearGradientBrush(
+        [new ImmutableGradientStop(0, Color.FromUInt32(0x73FFFFFF)), new ImmutableGradientStop(0.42, Color.FromUInt32(0x00FFFFFF)),
+         new ImmutableGradientStop(0.78, Color.FromUInt32(0x00000000)), new ImmutableGradientStop(1, Color.FromUInt32(0x14000000))],
+        startPoint: new RelativePoint(0.5, 0, RelativeUnit.Relative), endPoint: new RelativePoint(0.5, 1, RelativeUnit.Relative));
 
-    /// <summary>The label of an ordinary slice: a warm near-black on light glass, warm white on dark.</summary>
+    private Color _litFor;
+    private IImmutableBrush? _lit;
+    private IImmutableBrush? _litLabel;
+
+    /// <summary>The accent the lit slice takes (the theme's, Mandarin orange unless the user picked another).</summary>
+    private Color AccentColor => (AccentBrush as ISolidColorBrush)?.Color ?? Color.FromUInt32(0xFFF27A1E);
+
+    /// <summary>
+    /// The lit slice: the accent as colour inside the glass, a little lighter at the top where the light comes in and
+    /// deeper at the bottom, not quite opaque.
+    /// </summary>
+    private IImmutableBrush Lit
+    {
+        get
+        {
+            var accent = AccentColor;
+            if (_lit is null || accent != _litFor)
+            {
+                _litFor = accent;
+                _lit = Linear((Mix(accent, Colors.White, 0.28, 0xF0), 0), (Mix(accent, Colors.White, 0, 0xEB), 0.5),
+                    (Mix(accent, Colors.Black, 0.14, 0xF2), 1));
+                _litLabel = new ImmutableSolidColorBrush(Luminance(accent) > 0.62 ? Color.FromUInt32(0xFF1D1D1F) : Colors.White);
+            }
+            return _lit;
+        }
+    }
+
+    private static uint Mix(Color a, Color b, double t, byte alpha)
+    {
+        byte C(byte x, byte y) => (byte)Math.Round(x + (y - x) * t);
+        return (uint)(alpha << 24 | C(a.R, b.R) << 16 | C(a.G, b.G) << 8 | C(a.B, b.B));
+    }
+
+    private static double Luminance(Color c) => (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255;
+
+    /// <summary>The label of the lit slice: white on the accent glass (near-black on a pale accent), the theme's own otherwise.</summary>
+    private IBrush? HotLabelBrush => GlassStyle ? LitLabel : OnAccentBrush;
+
+    private IBrush LitLabel
+    {
+        get
+        {
+            _ = Lit;
+            return _litLabel ?? Brushes.White;
+        }
+    }
+
+    /// <summary>The label of an ordinary slice: near-black on light glass, near-white on dark.</summary>
     private IBrush? SliceLabelBrush => GlassStyle ? IsDarkGlass ? GlassLabelDark : GlassLabel : Foreground;
 
     /// <summary>
@@ -96,7 +163,7 @@ public sealed partial class DonutMenu
             Matrix.CreateTranslation(center.X, center.Y));
         using var fade = context.PushOpacity(opening);
         var ring = CreateRing(center, r1, r2);
-        context.DrawGeometry(IsDarkGlass ? DarkPlate : LightPlate, null, ring);
+        context.DrawGeometry(PlateFill, null, ring);
         // A hairline outside the rim keeps the wheel's edge on a white window; the rim lights its top.
         context.DrawEllipse(null, new Pen(Hairline, 1), center, r2 + 0.5, r2 + 0.5);
         context.DrawEllipse(null, new Pen(IsDarkGlass ? DarkRim : LightRim, 1.4), center, r2 - 0.7, r2 - 0.7);
@@ -119,17 +186,20 @@ public sealed partial class DonutMenu
         }
 
         using (context.PushOpacity(SliceOpacity * (enabled ? 1 : 0.5)))
-            context.DrawGeometry(IsDarkGlass ? DarkSlice : LightSlice, null, wedge);
+            context.DrawGeometry(SliceFill, null, wedge);
         if (emphasis > 0.01)
         {
-            // A soft orange glow just outside the lit slice gives it depth, then the orange glass itself.
-            using (context.PushOpacity(0.22 * emphasis))
-                context.DrawGeometry(null, new Pen(Lit, 6, lineJoin: PenLineJoin.Round), wedge);
+            // The accent fills the glass, with a soft glow of it just outside the slice.
+            var lit = Lit;
+            using (context.PushOpacity(0.2 * emphasis))
+                context.DrawGeometry(null, new Pen(lit, 7, lineJoin: PenLineJoin.Round), wedge);
             using (context.PushOpacity(emphasis))
-                context.DrawGeometry(Lit, null, wedge);
+                context.DrawGeometry(lit, null, wedge);
         }
+        using (context.PushOpacity(enabled ? 1 : 0.6))
+            context.DrawGeometry(Sheen, null, wedge);
         var rim = emphasis > 0.5 ? LitRim : IsDarkGlass ? DarkRim : LightRim;
-        context.DrawGeometry(null, new Pen(rim, 1.1, lineJoin: PenLineJoin.Round), wedge);
+        context.DrawGeometry(null, new Pen(rim, 1.2, lineJoin: PenLineJoin.Round), wedge);
     }
 
     /// <summary>

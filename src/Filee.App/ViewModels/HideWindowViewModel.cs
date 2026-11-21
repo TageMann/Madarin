@@ -497,6 +497,7 @@ public sealed partial class HideWindowViewModel : ObservableObject, IDisposable
 
     private void AddProblem(string path, string key)
     {
+        Filee.App.Services.FeedbackEffects.Shared?.Play(Filee.Core.Platform.FeedbackSound.Failed); // Mandarin: the error bleep
         var line = $"{Path.GetFileName(path)}: {_loc[key]}";
         Problems.Add(line);
         StatusNotice = line;

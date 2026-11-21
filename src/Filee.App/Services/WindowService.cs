@@ -180,7 +180,24 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
     internal MergeOrderWindow? MergeOrder => _mergeOrder;
     internal PdfPageEditorWindow? PdfPageEditor => _pdfPageEditor;
 
-    private void PrepareWindow(Window window) => services.GetService<ThemeService>()?.ApplyWindowClass(window);
+    private void PrepareWindow(Window window)
+    {
+        services.GetService<ThemeService>()?.ApplyWindowClass(window);
+        if (window is not MainWindow)
+            KeepMainOutOfTheWay();
+    }
+
+    /// <summary>
+    /// Mandarin, macOS: a panel opened from the wheel (Make GIF's frame order, a tool, a question) activates the app, and
+    /// macOS then brings every open window of it forward, the settings left open behind Finder too. Settings the user
+    /// isn't looking at go to the menu bar first (as closing them does), so only the panel comes up.
+    /// </summary>
+    private void KeepMainOutOfTheWay()
+    {
+        if (!OperatingSystem.IsMacOS() || _main is not { IsReleased: false, IsVisible: true, IsActive: false } main)
+            return;
+        main.HideToTray();
+    }
 
     /// <summary>
     /// Reviews the order of a merge (<paramref name="preset"/>, when given, names the button). For "Merge images" the
@@ -390,7 +407,9 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
     /// </summary>
     public void ShowTool(IReadOnlyList<string> files, Preset preset, PixelPoint? near = null)
     {
-        if (preset.IsClipTool)
+        if (preset.Id == BuiltInData.TrimAudioId)
+            ShowTrimAudioWindow(files, preset, near);
+        else if (preset.IsClipTool)
             ShowClipWindow(files, preset, near);
         else if (preset.IsHideTool)
             ShowHideWindow(files, preset, near);
@@ -432,6 +451,42 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
     /// </summary>
     public void ShowRingtoneWindow(IReadOnlyList<string> files, Preset preset, PixelPoint? near = null) =>
         ShowClipWindow(files, preset, near, ringtone: true);
+
+    private TrimAudioWindow? _trimWindow;
+
+    internal TrimAudioWindow? TrimWindow => _trimWindow;
+
+    /// <summary>
+    /// Mandarin: "Trim Audio" on the sounds among the files: the clip tool's work (waveform, the two ends, playing,
+    /// saving through an ordinary conversion shown in the toast) in a small window made for it.
+    /// </summary>
+    public void ShowTrimAudioWindow(IReadOnlyList<string> files, Preset preset, PixelPoint? near = null)
+    {
+        var catalog = services.GetRequiredService<ConverterCatalog>();
+        var cutters = catalog.CreatePlanner();
+        var sounds = files.Where(f => FormatRegistry.Detect(f) is { Category: FormatCategory.Audio } format
+            && ClipTool.CanCut(format.Id, cutters)).ToList();
+        if (sounds.Count == 0)
+            return;
+        _trimWindow?.Close();
+        var store = services.GetRequiredService<UserDataStore>();
+        var conversions = services.GetRequiredService<ConversionService>();
+        var log = services.GetService<ILogger<ClipWindowViewModel>>();
+        var vm = new ClipWindowViewModel(sounds, preset, loc, store, new FfmpegFrameSource(),
+            path => ClipTool.TargetFor(FormatRegistry.Detect(path)?.Id ?? ClipTool.FallbackTarget, catalog.CreatePlanner()),
+            (path, conversion) => conversions.Start([path], conversion), log);
+        var win = new TrimAudioWindow { DataContext = vm };
+        PrepareWindow(win);
+        win.Closed += (_, _) =>
+        {
+            if (_trimWindow == win)
+                _trimWindow = null;
+            trimmer.Request();
+        };
+        _trimWindow = win;
+        win.Show();
+        win.Activate();
+    }
 
     private void ShowClipWindow(IReadOnlyList<string> files, Preset preset, PixelPoint? near, bool ringtone)
     {

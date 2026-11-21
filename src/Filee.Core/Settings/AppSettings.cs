@@ -280,6 +280,12 @@ public sealed class AppSettings
     public bool MandarinLayoutApplied { get; set; }
 
     /// <summary>
+    /// Mandarin 2: true once Mandarin was made a menu-bar app on macOS (no Dock icon, the menu bar icon on) and the
+    /// audio wheel was given Trim Audio. A missing value reads as false.
+    /// </summary>
+    public bool MenuBarFirstApplied { get; set; }
+
+    /// <summary>
     /// Custom build: play sound effects (the donut opening, a slice under the pointer, a drop, a finished or failed
     /// conversion). macOS only for now. A missing value reads as on.
     /// </summary>

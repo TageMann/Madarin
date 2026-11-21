@@ -10,6 +10,8 @@ using Filee.App.Views;
 using Filee.Core.Localization;
 using Filee.Core.Presets;
 using Filee.Core.Settings;
+using Filee.App.Controls;
+using Filee.Engines.Media;
 using ImageMagick;
 
 namespace Filee.App.Tests;
@@ -98,8 +100,10 @@ public class MandarinLookTests
             var tool = (store.FindPreset(BuiltInData.BackgroundId) ?? BuiltInData.BackgroundPresets().Single()).Clone();
             tool.Image.BackdropLook = null;
             var vm = new BackgroundViewModel([Photo(folder, "screenshot.png", 1000, 640)], tool, AppHost.Get<ILocalizer>(), store, (_, _) => { });
-            var window = new BackgroundWindow { DataContext = vm, Width = 800, Height = 900 };
+            var window = new BackgroundWindow { DataContext = vm, Width = 1180, Height = 820 };
             window.Show();
+            // At its usual size the controls are on the left and the picture fills the right.
+            Assert.True(window.IsWideLayout);
             Wait(() => vm.IsPreviewCurrent && !vm.IsBusy);
             // Mandarin's own pictures ship next to the program.
             Assert.NotEmpty(vm.Pictures);
@@ -160,5 +164,115 @@ public class MandarinLookTests
             theme.Apply(new ThemeSettings(), "en");
             try { Directory.Delete(folder, true); } catch (IOException) { }
         }
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void The_progress_ring_is_glass_and_finishes_with_a_green_check(bool dark)
+    {
+        TestServices.EnsureInitialized("en");
+        var theme = AppHost.Get<ThemeService>();
+        var store = AppHost.Get<UserDataStore>();
+        var folder = Path.Combine(Path.GetTempPath(), "mandarin-look-" + Guid.NewGuid().ToString("N"));
+        var suffix = dark ? "dark" : "light";
+        try
+        {
+            theme.Apply(new ThemeSettings { Mode = dark ? ThemeMode.Dark : ThemeMode.Light }, "en");
+            var vm = AppHost.Get<RadialViewModel>();
+            vm.Load([Photo(folder, "tangerine tree.png")], clickMode: true);
+            var window = new RadialWindow { DataContext = vm };
+            window.Show();
+            var donut = window.DonutControl;
+            donut.BeginProgress();
+            Wait(() => false, 1);
+            // Nothing known yet: an arc goes round, no percentage is made up.
+            Assert.True(donut.IsProgressIndeterminate);
+            RenderTests.Save(window, $"mandarin-progress-waiting-{suffix}.png");
+            donut.SetProgress(0.62);
+            Wait(() => false, 1);
+            Assert.False(donut.IsProgressIndeterminate);
+            RenderTests.Save(window, $"mandarin-progress-{suffix}.png");
+            var finished = false;
+            donut.CompleteProgress(DonutProgressOutcome.Succeeded, () => finished = true);
+            Wait(() => donut.ShownOutcome is not null, 3);
+            Wait(() => false, 1);
+            Assert.Equal(DonutProgressOutcome.Succeeded, donut.ShownOutcome);
+            RenderTests.Save(window, $"mandarin-progress-done-{suffix}.png");
+            Wait(() => finished, 4);
+            Assert.True(finished);
+            window.Close();
+        }
+        finally
+        {
+            theme.Apply(new ThemeSettings(), "en");
+            try { Directory.Delete(folder, true); } catch (IOException) { }
+        }
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Trim_audio_shows_the_waveform_between_two_handles(bool dark)
+    {
+        TestServices.EnsureInitialized("en");
+        var theme = AppHost.Get<ThemeService>();
+        var suffix = dark ? "dark" : "light";
+        var folder = Path.Combine(Path.GetTempPath(), "mandarin-look-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            theme.Apply(new ThemeSettings { Mode = dark ? ThemeMode.Dark : ThemeMode.Light }, "en");
+            Directory.CreateDirectory(folder);
+            var memo = Path.Combine(folder, "voice memo.m4a");
+            File.WriteAllBytes(memo, new byte[64]);
+            var exports = new List<(string Path, Preset Preset)>();
+            var vm = new ClipWindowViewModel([memo], BuiltInData.TrimAudioPreset(), AppHost.Get<ILocalizer>(),
+                AppHost.Get<UserDataStore>(), new Sound(41.74), _ => "m4a", (path, preset) => exports.Add((path, preset)));
+            var window = new TrimAudioWindow { DataContext = vm };
+            window.Show();
+            Wait(() => vm.Loudness.Count > 0 && vm.Duration > 0);
+            Assert.True(vm.IsSoundOnly);
+            Assert.Equal(41.74, vm.End, 2);
+
+            vm.TrimSilentEnds = true;
+            Wait(() => false, 1);
+            Assert.True(vm.Start > 0);
+            Assert.True(vm.End < vm.Duration);
+            Assert.Contains("selected", vm.SelectedText);
+            RenderTests.Save(window, $"mandarin-trim-audio-{suffix}.png");
+            window.Close();
+        }
+        finally
+        {
+            theme.Apply(new ThemeSettings(), "en");
+            try { Directory.Delete(folder, true); } catch (IOException) { }
+        }
+    }
+
+    /// <summary>A sound of <paramref name="duration"/> seconds with a second of silence at either end.</summary>
+    private sealed class Sound(double duration) : IVideoFrameSource
+    {
+        public Task<VideoSummary> ProbeAsync(string path, CancellationToken cancellationToken) =>
+            Task.FromResult(new VideoSummary(duration, 0, 0, 0));
+
+        public Task<bool> WriteFrameAsync(string path, double seconds, string output, int maxHeight, CancellationToken cancellationToken) =>
+            Task.FromResult(false);
+
+        public Task<float[]> ReadLoudnessAsync(string path, double start, double end, int count, string workFolder, CancellationToken cancellationToken) =>
+            Task.FromResult(Enumerable.Range(0, count).Select(i =>
+            {
+                var t = start + (end - start) * i / count;
+                if (t < 1 || t > duration - 1)
+                    return 0f;
+                return (float)Math.Clamp(0.45 + 0.35 * Math.Sin(i / 2.0) * Math.Sin(i / 23.0), 0.08, 1);
+            }).ToArray());
+
+        public Task<double> ReadSoundLengthAsync(string path, CancellationToken cancellationToken) => Task.FromResult(duration);
+
+        public Task<IReadOnlyList<ClipRange>> FindSilencesAsync(string path, double start, double end, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ClipRange>>([]);
+
+        public Task PlayAsync(string path, ClipEdit clip, int height, Action<byte[], int, int, double> onFrame, CancellationToken cancellationToken) =>
+            Task.CompletedTask;
     }
 }

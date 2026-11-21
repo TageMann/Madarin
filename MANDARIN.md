@@ -1,7 +1,32 @@
-# Mandarin
+# Mandarin, by Tage
 
-Mandarin is a version of Filee 2.5.0 with a warm, orange glass design, your own sounds, and a few new tools. All of
-Filee's converters and tools are still there.
+Mandarin is a version of Filee 2.5.0 with a liquid-glass design, sounds, and a few new tools. All of Filee's
+converters and tools are still there. It is built with source code from Filee (filee.sh,
+github.com/KnifeLemon/Filee), used under the MIT license.
+
+## New in Mandarin 2
+
+- **Drop with ⌘ still held.** Start dragging, hold ⌘, move onto a slice and let go. You no longer have to release ⌘
+  first. Letting go of ⌘ before the drop still works. Finder isn't told to move anything: the file stays where it is.
+- **Clear glass wheel.** The wheel is now neutral glass (white in light mode, graphite in dark mode). Only the slice
+  under the file takes your accent colour.
+- **New progress ring.** A small glass ring with the accent arc and the real percentage. Until a percentage is known,
+  a short arc goes round, and no number is shown. When the file is ready, a green glass check appears and the confirm
+  sound plays.
+- **Menu bar app.** Mandarin has no Dock icon. Its menu bar icon has **Open Settings…**, **Enable/Disable
+  Mandarin**, **Launch at Login**, **About Mandarin** and **Quit Mandarin**. To show the Dock icon again, go to
+  **Settings > General**.
+- **Panels stay out of the way.** If the settings window is open behind another app, it goes to the menu bar when a
+  panel opens from the wheel (Make GIF's frame order, a tool), so only that panel comes forward.
+- **Trim Audio** (first on the audio wheel). It shows the waveform with a handle at each end, the start, the end and
+  how much is selected. Use **Trim silent ends automatically** and **Play Selected Range**, then **Apply** to save
+  "{name} Trimmed" as a new file. The original isn't changed. Playback needs FFmpeg's player (part of the FFmpeg
+  download).
+- **Accent colours** (Settings > Theme): Mandarin Orange (the default), macOS Blue, Soft Purple, Rose Pink, Mint Green
+  and Graphite.
+- **Add BG:** the controls are on the left and the picture is large on the right. It no longer appears for GIFs.
+- **Error sound:** tools play the Bleep sound when something can't be done.
+- New icon and new installer artwork.
 
 ## What's new
 
@@ -39,8 +64,9 @@ them off, or change the volume, in **Settings > General**. To use your own sound
 to the data folder there, make a folder named `sounds`, and add files named `open`, `hover`, `drop`, `flip`, `panel`,
 `select`, `done` or `failed` (`.wav`, `.aiff`, `.m4a` or `.mp3`).
 
-**Look.** Orange accent, warm orange-to-peach glass panels, glass buttons, white slider thumbs on a red-orange track,
-and the new icon. Light and dark mode both have their own version (Settings > Theme).
+**Look.** Neutral glass panels, glass buttons, white slider thumbs on an accent track, and the new icon. Light and
+dark mode both have their own version (Settings > Theme). On macOS the settings window lets the desktop show through,
+blurred. With **Reduce transparency** on, the wheel is drawn solid.
 
 ## Moving from Filee to Mandarin
 
@@ -63,8 +89,10 @@ and the new icon. Light and dark mode both have their own version (Settings > Th
 2. Open the `Mandarin-…-osx-arm64.dmg` file and drag **Mandarin** onto **Applications**.
 3. Open Mandarin from Applications. This build isn't notarized by Apple, so the first time macOS says it can't check
    it: go to **System Settings > Privacy & Security**, scroll down, and click **Open Anyway** next to Mandarin.
-4. Allow Mandarin under **Accessibility** and **Input Monitoring** when asked. If gestures don't work, open System
-   Settings > Privacy & Security > Accessibility, remove Mandarin with **−**, add it again with **+**, and switch it on.
+4. Allow Mandarin under **Accessibility** and **Input Monitoring** (System Settings > Privacy & Security). Then quit
+   Mandarin from its menu bar icon and open it again: macOS only applies these permissions at launch. If
+   **Settings > Shortcuts** still says "Global input detection is stopped", remove Mandarin from both lists with
+   **−**, add it again with **+**, switch it on, and reopen Mandarin.
 5. Select a picture in Finder, hold ⌘ and drag it a little: the wheel opens.
 
 Mandarin doesn't install updates from Filee: the automatic update check is turned off, because an official Filee
@@ -74,5 +102,7 @@ update would replace Mandarin. Leave **About > Check for updates automatically**
 
 - A see-through (transparent) background in Add BG: its pictures are always saved with a solid background.
 - Light adjustments are only in Edit Photo, for pictures; they aren't remembered between uses.
+- The wheel and panels don't blur what's behind them (only the settings window does). The wheel's glass is drawn by
+  Mandarin itself, because its drawing framework can't put a blur behind a round shape.
 - Trackpad taps need a Force Touch trackpad and a finger on it. macOS may not deliver them while another app is in
   front.

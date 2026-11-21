@@ -577,6 +577,7 @@ public sealed partial class MetadataViewModel : ObservableObject, IDisposable
 
     private void AddProblem(int index, string key)
     {
+        Filee.App.Services.FeedbackEffects.Shared?.Play(Filee.Core.Platform.FeedbackSound.Failed); // Mandarin: the error bleep
         _outcomes[index] = CropItemState.Failed;
         var line = $"{Path.GetFileName(_files[index])}: {_loc[key]}";
         Problems.Add(line);

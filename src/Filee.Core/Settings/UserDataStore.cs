@@ -197,6 +197,18 @@ public sealed class UserDataStore
             Settings.CommandDragApplied = true;
             customChanged = File.Exists(SettingsPath);
         }
+        // Mandarin 2: a quiet menu-bar app on macOS: no Dock icon, its icon in the menu bar; Trim Audio on the audio wheel.
+        if (mandarinProfile && !Settings.MenuBarFirstApplied)
+        {
+            if (OperatingSystem.IsMacOS())
+            {
+                Settings.ShowInDock = false;
+                Settings.ShowMenuBarIcon = true;
+            }
+            libraryChanged |= AddTrimAudio();
+            Settings.MenuBarFirstApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
         // Custom build: an official update would replace this build, so the automatic check is turned off, once.
         if (mandarinProfile && !Settings.CustomBuildUpdatesOff)
         {
@@ -376,6 +388,30 @@ public sealed class UserDataStore
     }
 
     public Preset? FindPreset(string id) => Presets.FirstOrDefault(p => p.Id == id);
+
+    /// <summary>
+    /// Mandarin 2: Trim Audio in the library (after "Cut a clip") and first on the audio wheel's front, the last slice
+    /// there giving way when the face is full. True when the library changed.
+    /// </summary>
+    internal bool AddTrimAudio()
+    {
+        var changed = false;
+        if (FindPreset(BuiltInData.TrimAudioId) is null)
+        {
+            var clip = Presets.FindIndex(p => p.Id == "tool-clip");
+            Presets.Insert(clip < 0 ? Presets.Count : clip + 1, BuiltInData.TrimAudioPreset());
+            changed = true;
+        }
+        if (Profiles.FirstOrDefault(p => p.Id == "audio") is { } audio
+            && !audio.PresetIds.Contains(BuiltInData.TrimAudioId) && audio.BackPresetIds?.Contains(BuiltInData.TrimAudioId) != true)
+        {
+            audio.PresetIds.Insert(0, BuiltInData.TrimAudioId);
+            if (audio.PresetIds.Count > ToolbarProfile.MaxSlices)
+                audio.PresetIds.RemoveAt(audio.PresetIds.Count - 1);
+            changed = true;
+        }
+        return changed;
+    }
 
     /// <summary>The preset <paramref name="id"/> when it converts (a group or tool doesn't), for every place that runs one.</summary>
     public Preset? FindConversion(string id) => Presets.FirstOrDefault(p => p.Id == id && !p.IsGroup && !p.IsTool);

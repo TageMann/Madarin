@@ -16,6 +16,8 @@ public sealed class TrayService(UserDataStore store, ILocalizer loc, IPlatformSe
     private TrayIcon? _tray;
     private NativeMenuItem? _open, _pause, _quit, _update;
     private bool? _templateIcon;
+    private NativeMenuItem? _login;
+    private NativeMenuItem? _about;
 
     public void Create(Application app)
     {
@@ -27,6 +29,14 @@ public sealed class TrayService(UserDataStore store, ILocalizer loc, IPlatformSe
             store.Settings.Paused = !store.Settings.Paused;
             store.SaveSettings();
         };
+        _login = new NativeMenuItem { ToggleType = NativeMenuItemToggleType.CheckBox };
+        _login.Click += (_, _) =>
+        {
+            store.Settings.StartWithSystem = !store.Settings.StartWithSystem;
+            store.SaveSettings();
+        };
+        _about = new NativeMenuItem();
+        _about.Click += (_, _) => windows.ShowMain("about");
         _quit = new NativeMenuItem();
         _quit.Click += (_, _) => (app.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
         _update = new NativeMenuItem();
@@ -36,7 +46,7 @@ public sealed class TrayService(UserDataStore store, ILocalizer loc, IPlatformSe
         {
             // Set before the icon is attached: on macOS Avalonia passes the tooltip to native code, which can't take null.
             ToolTipText = "Mandarin",
-            Menu = new NativeMenu { Items = { _open, _pause, new NativeMenuItemSeparator(), _quit } },
+            Menu = new NativeMenu { Items = { _open, _pause, _login, new NativeMenuItemSeparator(), _about, _quit } },
             IsVisible = platform.SupportsDockVisibility ? store.Settings.ShowMenuBarIcon : true,
         };
         ApplyIcon();
@@ -74,6 +84,9 @@ public sealed class TrayService(UserDataStore store, ILocalizer loc, IPlatformSe
         }
         _open!.Header = loc["tray.open"];
         _pause!.Header = store.Settings.Paused ? loc["tray.resume"] : loc["tray.pause"];
+        _login!.Header = loc["tray.launch_at_login"];
+        _login.IsChecked = store.Settings.StartWithSystem;
+        _about!.Header = loc["tray.about"];
         _quit!.Header = loc["tray.quit"];
         var drag = store.Settings.Triggers.FirstOrDefault(t => t.Enabled && t.Kind == TriggerKind.Drag);
         _tray.ToolTipText = store.Settings.Paused

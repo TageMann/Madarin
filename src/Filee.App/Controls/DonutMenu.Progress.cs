@@ -59,6 +59,10 @@ public sealed partial class DonutMenu
     private double _handOffClock = -1;
     private Action? _progressDone;
     private bool _ringHover;
+    private bool _progressKnown;            // a real progress above 0 came in: until then the ring spins, no %
+
+    /// <summary>The ring shows a spinning arc and no percentage: no real progress has come in yet. For tests.</summary>
+    internal bool IsProgressIndeterminate => _progressMode && !_progressKnown && _outcome is null && _pendingOutcome is null;
 
     public IBrush? SuccessBrush { get => GetValue(SuccessBrushProperty); set => SetValue(SuccessBrushProperty, value); }
 
@@ -101,6 +105,8 @@ public sealed partial class DonutMenu
     public void SetProgress(double value)
     {
         _targetProgress = Math.Clamp(value, 0, 1);
+        if (_targetProgress > 0)
+            _progressKnown = true;
         StartAnimation();
     }
 
@@ -158,6 +164,7 @@ public sealed partial class DonutMenu
         _handOffClock = -1;
         _progressDone = null;
         _ringHover = false;
+        _progressKnown = false;
     }
 
     private void FinishProgress()
@@ -210,11 +217,11 @@ public sealed partial class DonutMenu
             _outcome = pending;
             _holdClock = 0;
             if (animate)
-                _badge.Velocity = 9; // kick → overshoot "pop"
+                _badge.Velocity = GlassStyle ? 3.5 : 9; // kick → overshoot "pop" (the glass ring settles gently)
             else
                 _badge.Value = 1;
         }
-        if (_pendingOutcome is not null)
+        if (_pendingOutcome is not null || IsProgressIndeterminate && _ringClock >= 0)
             active = true;
 
         if (_outcome is { } outcome)
@@ -290,10 +297,15 @@ public sealed partial class DonutMenu
                 using (context.PushOpacity(1 - c))
                 {
                     var wedge = CreateWedge(center, r1, r2, i, n);
-                    context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity), BorderPen(), wedge);
                     var hot = i == ActiveIndex;
-                    if (hot)
-                        context.DrawGeometry(WithOpacity(AccentBrush, 0.8), null, wedge);
+                    if (GlassStyle)
+                        DrawSliceSurface(context, wedge, Items![i].IsEnabled, hot ? 1 : 0);
+                    else
+                    {
+                        context.DrawGeometry(WithOpacity(SliceBrush, SliceOpacity), BorderPen(), wedge);
+                        if (hot)
+                            context.DrawGeometry(WithOpacity(AccentBrush, 0.8), null, wedge);
+                    }
                     // Labels shrink with their slice instead of vanishing when the collapse starts.
                     DrawSliceLabel(context, labels[i], Items![i].IsEnabled, hot);
                     DrawGroupMark(context, Items![i], center, r2, DonutGeometry.MidAngle(i, n), hot);
@@ -303,7 +315,10 @@ public sealed partial class DonutMenu
             // The hole shrinks to the size of the ring's plate.
             var plate = RingRadius + RingStroke + 2;
             var holeRadius = Lerp(r1 - 6, plate, EaseInCubic(collapseAll));
-            context.DrawEllipse(CenterBrush, BorderPen(), center, holeRadius, holeRadius);
+            if (GlassStyle)
+                DrawGlassDisc(context, center, holeRadius);
+            else
+                context.DrawEllipse(CenterBrush, BorderPen(), center, holeRadius, holeRadius);
             return;
         }
 
@@ -321,6 +336,11 @@ public sealed partial class DonutMenu
         using var __ = context.PushOpacity(opacity);
 
         var plateRadius = RingRadius + RingStroke + 2;
+        if (GlassStyle)
+        {
+            RenderGlassRing(context, center, plateRadius, bold);
+            return;
+        }
         DrawPlateShadow(context, center, plateRadius);
         context.DrawEllipse(CenterBrush, BorderPen(), center, plateRadius, plateRadius);
         context.DrawEllipse(null, new Pen(WithOpacity(SecondaryForeground, 0.22), RingStroke), center, RingRadius, RingRadius);
@@ -346,6 +366,107 @@ public sealed partial class DonutMenu
 
         if (_outcome is { } outcome && outcome != DonutProgressOutcome.Cancelled && badge > 0.01)
             DrawOutcomeBadge(context, center, outcome, badge, bold);
+
+        if (_ringHover && _outcome is null && _handOffClock < 0)
+            DrawCancelButton(context, CancelButtonCenter(center));
+    }
+
+    // ── Mandarin's glass ring (GlassStyle): a clear glass disc with a lens in its middle, the accent arc running
+    //    round between them and the percentage in the lens; on success the lens turns into a green glass button. ──
+
+    private static readonly Avalonia.Media.Immutable.IImmutableBrush DiscFill = Linear((0xE6FFFFFF, 0), (0xC7F7F8FB, 0.6), (0xB8EEF0F5, 1));
+    private static readonly Avalonia.Media.Immutable.IImmutableBrush DiscFillDark = Linear((0xCC3A3A40, 0), (0xB82A2A2F, 1));
+    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush LensLine = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x14000000));
+    private static readonly Avalonia.Media.Immutable.IImmutableBrush GreenBall = Linear((0xFF7BE06A, 0), (0xFF3DB52B, 0.55), (0xFF23901A, 1));
+    private static readonly Avalonia.Media.Immutable.IImmutableBrush RedBall = Linear((0xFFFF8A80, 0), (0xFFE5483D, 0.55), (0xFFC0302A, 1));
+    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush GreenHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x4D5BD14A));
+    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush RedHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x40F0544A));
+
+    /// <summary>A round piece of clear glass: frosted fill, sheen, polished rim and a soft shadow under it.</summary>
+    private void DrawGlassDisc(DrawingContext context, Point center, double radius)
+    {
+        DrawPlateShadow(context, center, radius);
+        context.DrawEllipse(IsDarkGlass ? DiscFillDark : DiscFill, null, center, radius, radius);
+        var disc = new EllipseGeometry(new Rect(center.X - radius, center.Y - radius, radius * 2, radius * 2));
+        context.DrawGeometry(Sheen, null, disc);
+        context.DrawEllipse(null, new Pen(IsDarkGlass ? DarkRim : LightRim, 1.4), center, radius - 0.7, radius - 0.7);
+        context.DrawEllipse(null, new Pen(Hairline, 1), center, radius + 0.5, radius + 0.5);
+    }
+
+    private void RenderGlassRing(DrawingContext context, Point center, double plateRadius, Typeface bold)
+    {
+        var outer = plateRadius + 4;
+        var lens = RingRadius - RingStroke / 2 - 3;
+        DrawGlassDisc(context, center, outer);
+
+        var badge = _outcome is null ? 0 : Math.Clamp(_badge.Value, 0, 1.2);
+        var progress = _shownProgress;
+        var lit = Lit;
+
+        // The lens: a hairline circle, warmed from inside by the accent as the work goes on.
+        if (progress > 0.01 && _outcome is null)
+        {
+            var warm = new Avalonia.Media.Immutable.ImmutableRadialGradientBrush(
+                [new Avalonia.Media.Immutable.ImmutableGradientStop(0.55, Color.FromArgb(0, AccentColor.R, AccentColor.G, AccentColor.B)),
+                 new Avalonia.Media.Immutable.ImmutableGradientStop(1, Color.FromArgb((byte)(70 * progress), AccentColor.R, AccentColor.G, AccentColor.B))],
+                radius: 0.5);
+            context.DrawEllipse(warm, null, center, lens, lens);
+        }
+        context.DrawEllipse(null, new Pen(LensLine, 1), center, lens, lens);
+        context.DrawEllipse(null, new Pen(IsDarkGlass ? DarkRim : LightRim, 1), center, lens - 1, lens - 1);
+
+        // The arc: the accent, with a faint glow of itself; a short arc that goes round while nothing is known yet.
+        if (_outcome != DonutProgressOutcome.Succeeded || badge < 0.6)
+        {
+            var arcOpacity = _outcome is null ? 1 : 1 - Math.Clamp(badge / 0.6, 0, 1);
+            using (context.PushOpacity(arcOpacity))
+            {
+                var brush = _outcome == DonutProgressOutcome.Failed ? DangerBrush : lit;
+                double from = 0, length = _outcome == DonutProgressOutcome.Failed ? Math.Max(progress, 0.02) : progress;
+                if (!_progressKnown && _outcome is null)
+                {
+                    from = (_ringClock < 0 ? 0 : _ringClock) / 1.1 * 2 * Math.PI;
+                    length = 0.24;
+                }
+                using (context.PushOpacity(0.22))
+                    DrawArc(context, center, RingRadius, from, length, new Pen(brush, RingStroke + 6, lineCap: PenLineCap.Round));
+                DrawArc(context, center, RingRadius, from, length, new Pen(brush, RingStroke + 1, lineCap: PenLineCap.Round));
+            }
+        }
+
+        if (badge < 0.98 && _progressKnown)
+        {
+            using (context.PushOpacity(1 - Math.Clamp(badge, 0, 1)))
+            {
+                var percent = MakeText($"{Math.Round(progress * 100):0}%", bold, 15, SliceLabelBrush, RingRadius * 1.6);
+                DrawCentered(context, percent, center.X, center.Y - percent.Height / 2);
+            }
+        }
+
+        if (_outcome is { } outcome && outcome != DonutProgressOutcome.Cancelled && badge > 0.01)
+        {
+            var ok = outcome == DonutProgressOutcome.Succeeded;
+            using (context.PushOpacity(Math.Clamp(badge, 0, 1)))
+                context.DrawEllipse(ok ? GreenHalo : RedHalo, null, center, outer - 3, outer - 3);
+            var ball = lens * Math.Min(1, 0.6 + 0.4 * badge);
+            context.DrawEllipse(ok ? GreenBall : RedBall, new Pen(new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x80FFFFFF)), 1.5), center, ball, ball);
+            // The gloss on the ball's top half.
+            context.DrawEllipse(new Avalonia.Media.Immutable.ImmutableLinearGradientBrush(
+                    [new Avalonia.Media.Immutable.ImmutableGradientStop(0, Color.FromUInt32(0x66FFFFFF)), new Avalonia.Media.Immutable.ImmutableGradientStop(1, Color.FromUInt32(0x00FFFFFF))],
+                    startPoint: new RelativePoint(0.5, 0, RelativeUnit.Relative), endPoint: new RelativePoint(0.5, 1, RelativeUnit.Relative)),
+                null, new Point(center.X, center.Y - ball * 0.42), ball * 0.68, ball * 0.42);
+            var glyph = Matrix.CreateTranslation(-center.X, -center.Y) * Matrix.CreateScale(badge, badge) * Matrix.CreateTranslation(center.X, center.Y);
+            using (context.PushTransform(glyph))
+            {
+                if (ok)
+                    OutcomeGlyph.DrawCheck(context, center, Brushes.White);
+                else
+                {
+                    var mark = MakeText("!", bold, 22, Brushes.White, 30);
+                    DrawCentered(context, mark, center.X, center.Y - mark.Height / 2);
+                }
+            }
+        }
 
         if (_ringHover && _outcome is null && _handOffClock < 0)
             DrawCancelButton(context, CancelButtonCenter(center));
@@ -403,7 +524,11 @@ public sealed partial class DonutMenu
     }
 
     /// <summary>Clockwise arc from 12 o'clock covering <paramref name="fraction"/> of the circle.</summary>
-    private static void DrawArc(DrawingContext context, Point center, double radius, double fraction, Pen pen)
+    private static void DrawArc(DrawingContext context, Point center, double radius, double fraction, Pen pen) =>
+        DrawArc(context, center, radius, 0, fraction, pen);
+
+    /// <summary>Clockwise arc starting <paramref name="from"/> radians past 12 o'clock, covering <paramref name="fraction"/> of the circle.</summary>
+    private static void DrawArc(DrawingContext context, Point center, double radius, double from, double fraction, Pen pen)
     {
         if (fraction <= 0.001)
             return;
@@ -416,8 +541,8 @@ public sealed partial class DonutMenu
         var geometry = new StreamGeometry();
         using (var g = geometry.Open())
         {
-            g.BeginFigure(DonutGeometry.PointAt(center, radius, 0), false);
-            g.ArcTo(DonutGeometry.PointAt(center, radius, sweep), new Size(radius, radius), 0, sweep > Math.PI, SweepDirection.Clockwise);
+            g.BeginFigure(DonutGeometry.PointAt(center, radius, from), false);
+            g.ArcTo(DonutGeometry.PointAt(center, radius, from + sweep), new Size(radius, radius), 0, sweep > Math.PI, SweepDirection.Clockwise);
             g.EndFigure(false);
         }
         context.DrawGeometry(null, pen, geometry);

@@ -21,7 +21,9 @@ public sealed class ThemeService(IPlatformServices platform)
 
     /// <summary>Accent swatches offered in the Theme page.</summary>
     public static readonly IReadOnlyList<string> Swatches =
-        ["#F27A1E", "#7F77DD", "#1D9E75", "#D85A30", "#378ADD", "#D4537E", "#BA7517", "#5F5E5A"];
+        // Mandarin's accents: Mandarin Orange (the default), macOS Blue (NSColor.systemBlue, the blue of a Finder
+        // selection), Soft Purple, Rose Pink, Mint Green and Graphite (macOS's own graphite accent).
+        ["#F27A1E", "#007AFF", "#9D7BEA", "#EE5D8B", "#2FBF8F", "#8E8E93"];
 
     /// <summary>Curated theme preset with coordinated light and dark accent colours.</summary>
     public sealed record ThemePreset(string Key, string LightHex, string DarkHex)

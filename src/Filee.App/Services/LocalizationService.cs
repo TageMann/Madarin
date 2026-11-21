@@ -173,9 +173,13 @@ public sealed class LocalizationService : ILocalizer
         var strings = JsonSerializer.Deserialize(stream, AppJsonContext.Default.DictionaryStringString) ?? [];
         // Mandarin: every language names the app Mandarin (the translations were written for Filee).
         foreach (var key in strings.Keys.ToList())
-            strings[key] = Brand(strings[key]);
+            if (!Unbranded.Contains(key))
+                strings[key] = Brand(strings[key]);
         return strings;
     }
+
+    /// <summary>Strings that name Filee itself (the credit to the project Mandarin is built on) and keep its name.</summary>
+    private static readonly HashSet<string> Unbranded = ["about.credit"];
 
     /// <summary>Mandarin: the app's name in <paramref name="text"/> (written as "Filee") made Mandarin.</summary>
     internal static string Brand(string text) =>

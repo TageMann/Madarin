@@ -141,7 +141,9 @@ public sealed class PresetAvailability
         if (preset.IsClipTool)
         {
             // Any video or sound among the files: the others are left out when the clip window opens.
-            var videos = formats.Where(f => f.Category is FormatCategory.Video or FormatCategory.Audio).ToList();
+            // Mandarin's Trim Audio takes sounds only.
+            var videos = formats.Where(f => f.Category == FormatCategory.Audio
+                || f.Category == FormatCategory.Video && preset.Id != BuiltInData.TrimAudioId).ToList();
             if (videos.Count == 0)
                 return new(PresetUse.Unusable, _loc["error.unsupported_source"]);
             bool CanCut(RoutePlanner planner) => videos.Any(f => ClipTool.CanCut(f.Id, planner));
@@ -161,8 +163,9 @@ public sealed class PresetAvailability
             return formats.Any(f => HideService.CanOpen(f.Id))
                 ? new(PresetUse.Usable, null)
                 : new(PresetUse.Unusable, _loc["error.images_only"]);
+        // Mandarin: no backdrop for a GIF (its frames would be flattened into one picture; the preview refuses them).
         if (preset.IsBackgroundTool)
-            return formats.Any(f => HideService.CanOpen(f.Id))
+            return formats.Any(f => !string.Equals(f.Id, "gif", StringComparison.OrdinalIgnoreCase) && HideService.CanOpen(f.Id))
                 ? new(PresetUse.Usable, null)
                 : new(PresetUse.Unusable, _loc["error.images_only"]);
         if (preset.IsMetadataTool)

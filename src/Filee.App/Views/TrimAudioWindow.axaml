@@ -1,0 +1,77 @@
+<!-- Mandarin's "Trim Audio" panel: a floating glass panel with the round close button and the title on top, the
+     sound's waveform with a handle at either end, where it starts and ends, how much is chosen, "Trim silent ends
+     automatically", "Play Selected Range", and Apply, which writes the chosen part as a new file (the original is
+     kept) through an ordinary conversion shown in the toast. The clip tool's model does the work (ClipWindowViewModel). -->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Filee.App.ViewModels"
+        xmlns:c="using:Filee.App.Controls"
+        x:Class="Filee.App.Views.TrimAudioWindow"
+        x:DataType="vm:ClipWindowViewModel"
+        Title="{DynamicResource preset.trim_audio}"
+        Icon="avares://Filee/Assets/Icons/filee.ico"
+        Width="760" Height="520" MinWidth="560" MinHeight="460"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterScreen">
+  <Border x:Name="Shell" Classes="mandarin-panel" Margin="12" ClipToBounds="True">
+    <Grid RowDefinitions="58,Auto,*,Auto,Auto">
+      <!-- Title bar: close and the title; dragging it moves the panel -->
+      <Grid x:Name="TitleBar" Background="Transparent">
+        <Button Classes="close-round" HorizontalAlignment="Left" Margin="16,0" Command="{Binding CancelCommand}" KeyboardNavigation.IsTabStop="False"
+                ToolTip.Tip="{DynamicResource common.close}" AutomationProperties.Name="{DynamicResource common.close}">
+          <PathIcon Width="11" Height="11" Data="{StaticResource Icon.Close}" />
+        </Button>
+        <TextBlock Classes="panel-title" Text="{DynamicResource preset.trim_audio}" />
+      </Grid>
+      <Border Grid.Row="1" Classes="hairline" />
+
+      <StackPanel Grid.Row="2" Margin="24,18,24,10" Spacing="10">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Right" Classes="value" Text="{Binding SelectedText}" />
+          <TextBlock Classes="caption" Text="{Binding CurrentFileName}" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+        </DockPanel>
+        <TextBlock Classes="caption" Text="{DynamicResource trim.hint}" Margin="0,-6,0,0" />
+
+        <!-- The waveform: the accent between the two handles, faded outside them -->
+        <Border Classes="glass" Padding="6" CornerRadius="16">
+          <c:ClipTimeline x:Name="Timeline" Height="150" Waveform="True"
+                          AutomationProperties.Name="{DynamicResource clip.timeline}"
+                          Duration="{Binding Duration}" Start="{Binding Start}" End="{Binding End}"
+                          Playhead="{Binding Playhead}" ActiveHandle="{Binding ActiveHandle}"
+                          Pieces="{Binding Pieces}" SelectedIndex="{Binding SelectedIndex}" Loudness="{Binding Loudness}"
+                          FadeIn="{Binding HasFadeIn}" FadeOut="{Binding HasFadeOut}" Snap="{Binding IsMagnet}"
+                          ViewStart="{Binding ViewStart}" ViewEnd="{Binding ViewEnd}"
+                          AccentBrush="{DynamicResource AccentBrush}" OnAccentBrush="{DynamicResource OnAccentBrush}"
+                          TrackBrush="{DynamicResource SurfaceAltBrush}" StageBrush="{DynamicResource SurfaceBrush}"
+                          Foreground="{DynamicResource TextPrimaryBrush}" />
+        </Border>
+
+        <Grid ColumnDefinitions="*,*">
+          <TextBlock Classes="value" HorizontalAlignment="Left" FontFamily="Menlo, Consolas, monospace" Text="{Binding TrimStartText}" />
+          <TextBlock Grid.Column="1" Classes="value" HorizontalAlignment="Right" FontFamily="Menlo, Consolas, monospace" Text="{Binding TrimEndText}" />
+        </Grid>
+
+        <DockPanel Margin="0,6,0,0">
+          <Button DockPanel.Dock="Right" Command="{Binding PlaySelectionCommand}" Padding="16,8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Width="11" Height="11" Data="M0,0 L10,6 L0,12 Z" IsVisible="{Binding !IsPlaying}" />
+              <PathIcon Width="11" Height="11" Data="M0,0 H4 V12 H0 Z M7,0 H11 V12 H7 Z" IsVisible="{Binding IsPlaying}" />
+              <TextBlock Text="{DynamicResource trim.play_selection}" />
+            </StackPanel>
+          </Button>
+          <CheckBox IsChecked="{Binding TrimSilentEnds}" Content="{DynamicResource trim.silent_ends}" VerticalAlignment="Center" />
+        </DockPanel>
+
+        <TextBlock Classes="caption" Text="{Binding Message}" TextWrapping="Wrap" IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+
+      <Border Grid.Row="3" Classes="hairline" />
+      <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="20,14,20,16">
+        <Button Content="{DynamicResource common.cancel}" Command="{Binding CancelCommand}" Padding="18,8" />
+        <Button Classes="accent primary" Content="{DynamicResource trim.apply}" Command="{Binding SaveCommand}" Padding="22,8" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

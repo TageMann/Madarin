@@ -21,6 +21,17 @@ public partial class MainWindow : Window
         InitializeComponent();
         Motion.Track(this);
         UiZoom.Track(this);
+        // Mandarin, macOS: the settings let the desktop show through, blurred, under a frosted wash (Mandarin.axaml's
+        // Window.vibrant). Where the system gives no blur the window stays opaque.
+        if (OperatingSystem.IsMacOS())
+        {
+            TransparencyLevelHint = [WindowTransparencyLevel.AcrylicBlur];
+            PropertyChanged += (_, e) =>
+            {
+                if (e.Property == ActualTransparencyLevelProperty)
+                    Classes.Set("vibrant", ActualTransparencyLevel == WindowTransparencyLevel.AcrylicBlur);
+            };
+        }
         PropertyChanged += (_, e) =>
         {
             // Once its normal size is in (some systems report the state first).

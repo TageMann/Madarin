@@ -17,9 +17,23 @@ public partial class BackgroundWindow : Window
     /// <summary>The focus came from the keyboard (Tab, arrows), not from a click.</summary>
     private bool _focusByKeyboard;
 
+    /// <summary>From this width (in the window's units) the controls sit left of the picture instead of under it.</summary>
+    internal const double WideFrom = 980;
+
+    private bool? _wide;
+
+    /// <summary>Whether the controls are beside the picture (wide) or under it. For tests.</summary>
+    internal bool IsWideLayout => _wide == true;
+
     public BackgroundWindow()
     {
         InitializeComponent();
+        ApplyLayout(Width >= WideFrom);
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == BoundsProperty || e.Property == WidthProperty)
+                ApplyLayout((Bounds.Width > 0 ? Bounds.Width : Width) >= WideFrom);
+        };
         // Mandarin: a floating panel without a system title bar; its own title bar moves it.
         TitleBar.PointerPressed += (_, e) =>
         {
@@ -138,5 +152,42 @@ public partial class BackgroundWindow : Window
             }],
         });
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+    }
+
+    /// <summary>
+    /// Wide: the controls in a column on the left, the picture filling the rest, both as tall as the panel. Narrow: the
+    /// picture on top and the controls under it, as before.
+    /// </summary>
+    private void ApplyLayout(bool wide)
+    {
+        if (_wide == wide)
+            return;
+        _wide = wide;
+        Body.ColumnDefinitions.Clear();
+        Body.RowDefinitions.Clear();
+        if (wide)
+        {
+            Body.ColumnDefinitions.Add(new ColumnDefinition(420, GridUnitType.Pixel));
+            Body.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
+            Grid.SetColumn(LookCard, 0);
+            Grid.SetRow(LookCard, 0);
+            Grid.SetColumn(PreviewWell, 1);
+            Grid.SetRow(PreviewWell, 0);
+            LookCard.Margin = new Thickness(18, 16, 6, 12);
+            PreviewWell.Margin = new Thickness(10, 16, 20, 12);
+            LookScroll.MaxHeight = double.PositiveInfinity;
+        }
+        else
+        {
+            Body.RowDefinitions.Add(new RowDefinition(1, GridUnitType.Star));
+            Body.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(PreviewWell, 0);
+            Grid.SetRow(PreviewWell, 0);
+            Grid.SetColumn(LookCard, 0);
+            Grid.SetRow(LookCard, 1);
+            PreviewWell.Margin = new Thickness(20, 16, 20, 8);
+            LookCard.Margin = new Thickness(18, 6, 18, 8);
+            LookScroll.MaxHeight = 380;
+        }
     }
 }

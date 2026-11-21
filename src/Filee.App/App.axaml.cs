@@ -67,6 +67,8 @@ public partial class App : Application
                 files => Dispatcher.UIThread.Post(() => HandleCommandLine(CommandLine.Parse(["--convert", .. files]))),
                 types => log.LogWarning("Convert with Filee was picked, but the request named no existing file; it held: {Types}",
                     types.Count == 0 ? "nothing" : string.Join(", ", types)));
+        if (OperatingSystem.IsMacOS())
+            CommandDrop.Install(log);
         // Exceptions in UI event handlers end Filee; write them down first (they are not marked handled).
         Dispatcher.UIThread.UnhandledException += (_, e) =>
             log.LogCritical(e.Exception, "Unhandled exception on the UI thread");

@@ -34,7 +34,7 @@ def create_hook(mount_point, options):
 
 
 icon_locations = {
-    "Mandarin.app": (124, 194),
-    "Applications": (269, 194),
+    "Mandarin.app": (122, 201),
+    "Applications": (272, 203),
     "INSTALL.txt": (124, 312),
 }

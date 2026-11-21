@@ -12,6 +12,8 @@
     <key>CFBundleShortVersionString</key><string>__VERSION__</string>
     <key>CFBundleVersion</key><string>__BUNDLE_VERSION__</string>
     <key>CFBundleIconFile</key><string>mandarin.icns</string>
+    <key>NSHumanReadableCopyright</key><string>Mandarin, by Tage. Built with source code from Filee (MIT license).</string>
+    <key>LSUIElement</key><true/>
     <key>LSMinimumSystemVersion</key><string>13.0</string>
     <key>NSHighResolutionCapable</key><true/>
     <!-- "Convert with Filee" in Finder's right-click menu, answered by the running Filee (MacOSServicesProvider).
