@@ -374,13 +374,13 @@ public sealed partial class DonutMenu
     // ── Mandarin's glass ring (GlassStyle): a clear glass disc with a lens in its middle, the accent arc running
     //    round between them and the percentage in the lens; on success the lens turns into a green glass button. ──
 
-    private static readonly Avalonia.Media.Immutable.IImmutableBrush DiscFill = Linear((0xE6FFFFFF, 0), (0xC7F7F8FB, 0.6), (0xB8EEF0F5, 1));
-    private static readonly Avalonia.Media.Immutable.IImmutableBrush DiscFillDark = Linear((0xCC3A3A40, 0), (0xB82A2A2F, 1));
-    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush LensLine = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x14000000));
-    private static readonly Avalonia.Media.Immutable.IImmutableBrush GreenBall = Linear((0xFF7BE06A, 0), (0xFF3DB52B, 0.55), (0xFF23901A, 1));
-    private static readonly Avalonia.Media.Immutable.IImmutableBrush RedBall = Linear((0xFFFF8A80, 0), (0xFFE5483D, 0.55), (0xFFC0302A, 1));
-    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush GreenHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x4D5BD14A));
-    private static readonly Avalonia.Media.Immutable.IImmutableSolidColorBrush RedHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x40F0544A));
+    private static readonly IImmutableBrush DiscFill = Linear((0xE6FFFFFF, 0), (0xC7F7F8FB, 0.6), (0xB8EEF0F5, 1));
+    private static readonly IImmutableBrush DiscFillDark = Linear((0xCC3A3A40, 0), (0xB82A2A2F, 1));
+    private static readonly IImmutableSolidColorBrush LensLine = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x14000000));
+    private static readonly IImmutableBrush GreenBall = Linear((0xFF7BE06A, 0), (0xFF3DB52B, 0.55), (0xFF23901A, 1));
+    private static readonly IImmutableBrush RedBall = Linear((0xFFFF8A80, 0), (0xFFE5483D, 0.55), (0xFFC0302A, 1));
+    private static readonly IImmutableSolidColorBrush GreenHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x4D5BD14A));
+    private static readonly IImmutableSolidColorBrush RedHalo = new Avalonia.Media.Immutable.ImmutableSolidColorBrush(Color.FromUInt32(0x40F0544A));
 
     /// <summary>A round piece of clear glass: frosted fill, sheen, polished rim and a soft shadow under it.</summary>
     private void DrawGlassDisc(DrawingContext context, Point center, double radius)
