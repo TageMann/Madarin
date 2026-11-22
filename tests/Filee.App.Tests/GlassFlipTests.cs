@@ -108,22 +108,29 @@ public class GlassFlipTests
             var donut = Glass();
             donut.CenterPill = "2.2 MB";
             donut.Bind(DonutMenu.AccentBrushProperty, Avalonia.Controls.ResourceNodeExtensions.GetResourceObservable(donut, "AccentBrush"));
-            var window = new Avalonia.Controls.Window { Content = donut, Width = 420, Height = 420, Background = MandarinLookTests.Wallpaper(false) };
-            window.Show();
-            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            // Drawn off-screen, so nothing but these Advance calls moves the turn (a shown window runs its own clock).
+            var frame = new Avalonia.Controls.Border { Width = 420, Height = 420, Background = MandarinLookTests.Wallpaper(false), Child = donut };
+            void Save(string name)
+            {
+                frame.Measure(new Avalonia.Size(420, 420));
+                frame.Arrange(new Avalonia.Rect(0, 0, 420, 420));
+                using var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(new Avalonia.PixelSize(420, 420));
+                bitmap.Render(frame);
+                bitmap.Save(Path.Combine(TestServices.ScreenshotDirectory, name));
+            }
             donut.SetExternalHighlight(2);
             for (var i = 0; i < 30; i++)
                 donut.Advance(1 / 60.0);
-            donut.Flip();
+            Save("mandarin-turn-0.png");
+            Assert.True(donut.Flip());
             var shown = 0.0;
             foreach (var (at, name) in new[] { (0.03, "a"), (0.055, "b"), (0.09, "c"), (0.16, "d") })
             {
                 donut.Advance(at - shown);
                 shown = at;
-                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
-                RenderTests.Save(window, $"mandarin-turn-{name}.png");
+                Assert.True(donut.IsFlipping);
+                Save($"mandarin-turn-{name}.png");
             }
-            window.Close();
         }
         finally { Motion.Set(previous); }
     }

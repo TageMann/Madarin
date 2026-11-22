@@ -4,6 +4,25 @@ Mandarin is a version of Filee 2.5.0 with a liquid-glass design, sounds, and a f
 converters and tools are still there. It is built with source code from Filee (filee.sh,
 github.com/KnifeLemon/Filee), used under the MIT license.
 
+## New in Mandarin 3
+
+- **No more stray wheel.** After a conversion the wheel's window stayed on screen (invisible apart from the progress
+  ring) until the ring finished. A normal drag passing over that spot could open the wheel there, without ⌘. The
+  window now ignores every drag unless you've just opened the wheel with ⌘ and haven't dropped yet.
+- **Smoother Tab flip.** The wheel turns over as one glass disc in 0.3 s. It starts at once and settles softly. It
+  eases back slightly in the middle of the turn, a soft light passes across it, and the labels fade out before they
+  would look squeezed. Pressing Tab quickly several times always ends on the right side.
+- **macOS glass.** On a Mac, the wheel, the progress ring and the floating panels (Add BG, Edit Photo, Trim Audio)
+  sit on the system's own glass. On macOS 26 (Tahoe) and later that is Apple's Liquid Glass. On earlier versions it
+  is the system's frosted material. Mandarin's own drawing on top is lighter there, so the real blur shows through.
+  To turn it off, use **Settings > General > Use macOS glass**.
+- **macOS controls.** Switches sit on the right of their row as on a Mac, buttons are capsules, sliders have a
+  floating white knob, and the interface uses the system font (San Francisco). You can change the font back in
+  **Settings > Theme**.
+- **Calmer motion.** The wheel opens as one piece and settles without bouncing. Notifications slide in without
+  overshooting.
+- **Add BG:** the formats you use most (1:1, 4:5, 9:16, 16:9) come first.
+
 ## New in Mandarin 2
 
 - **Drop with ⌘ still held.** Start dragging, hold ⌘, move onto a slice and let go. You no longer have to release ⌘
@@ -106,7 +125,7 @@ update would replace Mandarin. Leave **About > Check for updates automatically**
 
 - A see-through (transparent) background in Add BG: its pictures are always saved with a solid background.
 - Light adjustments are only in Edit Photo, for pictures; they aren't remembered between uses.
-- The wheel and panels don't blur what's behind them (only the settings window does). The wheel's glass is drawn by
-  Mandarin itself, because its drawing framework can't put a blur behind a round shape.
+- The system glass under the wheel and panels hasn't been seen on a real Mac by its developer yet. If it looks wrong
+  on yours, turn off **Settings > General > Use macOS glass**.
 - Trackpad taps need a Force Touch trackpad and a finger on it. macOS may not deliver them while another app is in
   front.
