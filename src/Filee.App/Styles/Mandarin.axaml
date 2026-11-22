@@ -150,6 +150,14 @@
         <GradientStop Color="#FFFF2E1A" Offset="0" />
         <GradientStop Color="#FFFF5A1F" Offset="1" />
       </LinearGradientBrush>
+      <!-- A slider's knob: a white pill that lifts off the track with a soft shadow (readable on white glass too). -->
+      <ControlTheme x:Key="MandarinSliderThumb" TargetType="Thumb">
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Border Background="White" CornerRadius="10" BoxShadow="0 1 3 0 #40000000, 0 0 0 0.5 #33000000" />
+          </ControlTemplate>
+        </Setter>
+      </ControlTheme>
       <!-- A macOS switch: its label on the left, a small capsule switch on the right of the row; the accent fills
            the track when on, a white knob with a soft shadow slides across. No "On" / "Off" text beside it. -->
       <ControlTheme x:Key="MandarinSwitch" TargetType="ToggleSwitch">
@@ -345,13 +353,6 @@
 
   <!-- ───────── Sliders: a thin warm track and a white pill thumb ───────── -->
   <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb">
-    <!-- A white pill that lifts off the track with a soft shadow (readable on white glass too). -->
-    <Setter Property="Template">
-      <ControlTemplate>
-        <Border Background="{TemplateBinding Background}" CornerRadius="10"
-                BoxShadow="0 1 3 0 #40000000, 0 0 0 0.5 #2E000000" />
-      </ControlTemplate>
-    </Setter>
     <Setter Property="Width" Value="28" />
     <Setter Property="Height" Value="20" />
     <Setter Property="CornerRadius" Value="10" />
@@ -363,6 +364,10 @@
         <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
+  </Style>
+  <!-- :not(:disabled) makes this a triggered style, which outranks the theme the slider's template gives its thumb. -->
+  <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb:not(:disabled)">
+    <Setter Property="Theme" Value="{StaticResource MandarinSliderThumb}" />
   </Style>
   <Style Selector="Window:not(.material-you) Slider:horizontal /template/ Thumb#PART_Thumb:pointerover">
     <Setter Property="RenderTransform" Value="scale(1.06)" />
