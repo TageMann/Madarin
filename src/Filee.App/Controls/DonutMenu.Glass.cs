@@ -50,6 +50,39 @@ public sealed partial class DonutMenu
 
     private bool IsDarkGlass => ActualThemeVariant == ThemeVariant.Dark;
 
+    // The radius of the native glass disc the frame being drawn wants under it (0: none).
+    private double _glassDisc;
+    private (Point Center, double Radius) _reportedDisc;
+
+    /// <summary>
+    /// The disc of native glass the wheel wants under it changed: its centre and radius in the control's coordinates
+    /// (radius 0: none). The owner puts the system's glass there (NativeGlass), so it follows the open, turn and close.
+    /// </summary>
+    public event Action<Point, double>? GlassDiscChanged;
+
+    /// <summary>The disc last reported (for tests).</summary>
+    internal (Point Center, double Radius) GlassDisc => _reportedDisc;
+
+    /// <summary>
+    /// macOS native glass sits under the wheel: the drawn plate and slices are made lighter so the real blur shows
+    /// through, while the rims, sheen and labels stay as drawn.
+    /// </summary>
+    public bool NativeGlassBehind { get; set; }
+
+    private void ReportGlassDisc(Point center, double radius)
+    {
+        if (!GlassStyle)
+            radius = 0;
+        radius = Math.Round(radius * 2) / 2;
+        if (_reportedDisc == (center, radius))
+            return;
+        _reportedDisc = (center, radius);
+        GlassDiscChanged?.Invoke(center, radius);
+    }
+
+    /// <summary>The wheel is closed or hidden: no native glass under it.</summary>
+    internal void ClearGlassDisc() => ReportGlassDisc(Center, 0);
+
     /// <summary>
     /// macOS Reduce transparency: the glass is drawn solid (read when the app starts, see App). Slices, plate and pill
     /// keep their shapes and rims.
@@ -61,8 +94,18 @@ public sealed partial class DonutMenu
     private static readonly IImmutableBrush LightPlateSolid = Linear((0xFFF2F2F5, 0), (0xFFE8E8EC, 1));
     private static readonly IImmutableBrush DarkPlateSolid = Linear((0xFF232327, 0), (0xFF1C1C1F, 1));
 
-    private IImmutableBrush SliceFill => SolidGlass ? IsDarkGlass ? DarkSliceSolid : LightSliceSolid : IsDarkGlass ? DarkSlice : LightSlice;
-    private IImmutableBrush PlateFill => SolidGlass ? IsDarkGlass ? DarkPlateSolid : LightPlateSolid : IsDarkGlass ? DarkPlate : LightPlate;
+    // Over macOS's own glass: the drawn surfaces are a thin frost on it, so its blur and refraction read through.
+    private static readonly IImmutableBrush LightSliceOverGlass = Linear((0x8CFFFFFF, 0), (0x66FFFFFF, 0.55), (0x59FAFAFC, 1));
+    private static readonly IImmutableBrush DarkSliceOverGlass = Linear((0x66505056, 0), (0x4D3A3A40, 1));
+    private static readonly IImmutableBrush LightPlateOverGlass = Linear((0x26FFFFFF, 0), (0x14FFFFFF, 1));
+    private static readonly IImmutableBrush DarkPlateOverGlass = Linear((0x1F000000, 0), (0x14000000, 1));
+
+    private IImmutableBrush SliceFill => SolidGlass ? IsDarkGlass ? DarkSliceSolid : LightSliceSolid
+        : NativeGlassBehind ? IsDarkGlass ? DarkSliceOverGlass : LightSliceOverGlass
+        : IsDarkGlass ? DarkSlice : LightSlice;
+    private IImmutableBrush PlateFill => SolidGlass ? IsDarkGlass ? DarkPlateSolid : LightPlateSolid
+        : NativeGlassBehind ? IsDarkGlass ? DarkPlateOverGlass : LightPlateOverGlass
+        : IsDarkGlass ? DarkPlate : LightPlate;
 
     // Immutable brushes: shared by every donut and free of any thread (a mutable brush belongs to the one that made it).
     private static IImmutableBrush Linear(params (uint Argb, double Offset)[] stops) =>
@@ -146,6 +189,32 @@ public sealed partial class DonutMenu
     private IBrush? SliceLabelBrush => GlassStyle ? IsDarkGlass ? GlassLabelDark : GlassLabel : Foreground;
 
     /// <summary>
+    /// The light catching the glass as it turns: a soft white band that sweeps across the disc, strongest when the disc
+    /// is angled (a quarter and three quarters of the way round) and gone when it lies flat or stands edge-on.
+    /// </summary>
+    private void DrawFlipGlint(DrawingContext context, Point center, double r1, double r2)
+    {
+        var angle = GlassAngle;
+        var strength = Math.Pow(Math.Sin(2 * angle), 2) * (SolidGlass ? 0.08 : 0.2);
+        var width = PlateFlipWidth();
+        if (strength < 0.01 || width < EdgeOn)
+            return;
+        var at = Math.Clamp(angle / Math.PI, 0, 1);
+        var band = new ImmutableLinearGradientBrush(
+            [
+                new ImmutableGradientStop(Math.Clamp(at - 0.28, 0, 1), Color.FromArgb(0, 255, 255, 255)),
+                new ImmutableGradientStop(at, Color.FromArgb((byte)(255 * strength), 255, 255, 255)),
+                new ImmutableGradientStop(Math.Clamp(at + 0.28, 0, 1), Color.FromArgb(0, 255, 255, 255)),
+            ],
+            startPoint: new RelativePoint(0, 0.2, RelativeUnit.Relative), endPoint: new RelativePoint(1, 0.8, RelativeUnit.Relative));
+        var depth = 1 - 0.05 * FlipLift;
+        var turn = Matrix.CreateTranslation(-center.X, -center.Y) * Matrix.CreateScale(width * depth, depth) *
+                   Matrix.CreateTranslation(center.X, center.Y);
+        using (context.PushTransform(turn))
+            context.DrawGeometry(band, null, CreateRing(center, r1 + GlassInset, r2 - GlassInset));
+    }
+
+    /// <summary>
     /// The glass plate the slices sit in: a translucent ring from the hole to the outer edge with a polished rim,
     /// squeezed sideways with the wheel while it flips (<paramref name="width"/> 0 to 1).
     /// </summary>
@@ -157,7 +226,10 @@ public sealed partial class DonutMenu
         if (opening <= 0.001)
             return;
         var scale = 0.86 + 0.14 * opening;
-        var lift = 1 + FlipLift * 0.04;
+        var lift = 1 - 0.05 * FlipLift; // eases back with the slices as the disc turns
+        // The native glass under the plate: a disc no wider than the plate as drawn (round while it turns).
+        if (opening > 0.6 && !_closing)
+            _glassDisc = r2 * scale * lift * Math.Min(1, width);
         using var transform = context.PushTransform(
             Matrix.CreateTranslation(-center.X, -center.Y) * Matrix.CreateScale(scale * width * lift, scale * lift) *
             Matrix.CreateTranslation(center.X, center.Y));
@@ -191,16 +263,29 @@ public sealed partial class DonutMenu
         {
             // The accent fills the glass, with a soft glow of it just outside the slice.
             var lit = Lit;
-            using (context.PushOpacity(0.2 * emphasis))
-                context.DrawGeometry(null, new Pen(lit, 7, lineJoin: PenLineJoin.Round), wedge);
+            using (context.PushOpacity(0.16 * emphasis))
+                context.DrawGeometry(null, new Pen(lit, 8, lineJoin: PenLineJoin.Round), wedge);
             using (context.PushOpacity(emphasis))
+            {
                 context.DrawGeometry(lit, null, wedge);
+                // Light gathering inside the coloured glass, near its top: colour in the material, not paint on it.
+                context.DrawGeometry(LitGlow, null, wedge);
+            }
         }
         using (context.PushOpacity(enabled ? 1 : 0.6))
             context.DrawGeometry(Sheen, null, wedge);
         var rim = emphasis > 0.5 ? LitRim : IsDarkGlass ? DarkRim : LightRim;
         context.DrawGeometry(null, new Pen(rim, 1.2, lineJoin: PenLineJoin.Round), wedge);
+        // A faint shade along the lower edge: the rim catches light at the top and falls into shadow below.
+        context.DrawGeometry(null, new Pen(IsDarkGlass ? DarkUnderRim : LightUnderRim, 1, lineJoin: PenLineJoin.Round), wedge);
     }
+
+    private static readonly IImmutableBrush LitGlow = new ImmutableRadialGradientBrush(
+        [new ImmutableGradientStop(0, Color.FromUInt32(0x52FFFFFF)), new ImmutableGradientStop(1, Color.FromUInt32(0x00FFFFFF))],
+        center: new RelativePoint(0.5, 0.22, RelativeUnit.Relative), gradientOrigin: new RelativePoint(0.5, 0.22, RelativeUnit.Relative), radius: 0.62);
+
+    private static readonly IImmutableBrush LightUnderRim = Linear((0x00000000, 0), (0x00000000, 0.55), (0x24000000, 1));
+    private static readonly IImmutableBrush DarkUnderRim = Linear((0x00000000, 0), (0x00000000, 0.55), (0x4D000000, 1));
 
     /// <summary>
     /// The hub with <see cref="GlassStyle"/> and a <see cref="CenterPill"/>: clear, so the file being dragged shows
@@ -235,7 +320,7 @@ public sealed partial class DonutMenu
     /// <summary>
     /// How far a flip has come, 0 to 1 and back: the wheel rises a little as it turns over, like an object picked up.
     /// </summary>
-    private double FlipLift => IsFlipping ? Math.Sin(Math.PI * Math.Clamp(_flipClock / FlipDuration, 0, 1)) : 0;
+    private double FlipLift => IsFlipping ? Math.Sin(GlassAngle) : 0;
 
     /// <summary>How wide the plate is while the wheel flips: as wide as its widest slice.</summary>
     private double PlateFlipWidth()

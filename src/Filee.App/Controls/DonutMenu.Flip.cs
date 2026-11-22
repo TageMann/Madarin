@@ -54,6 +54,72 @@ public sealed partial class DonutMenu
     internal const double Stagger = 0.08;
     internal const double FlipDuration = SliceTurn + Stagger;
 
+    /// <summary>
+    /// Mandarin's glass wheel turns over as one disc (no wave of slices): this long, on <see cref="GlassEase"/>. Most of
+    /// the turn happens in the first third, so it answers the key at once, then it settles softly face up.
+    /// </summary>
+    internal const double GlassFlipDuration = 0.3;
+
+    private double ActiveFlipDuration => GlassStyle ? GlassFlipDuration : FlipDuration;
+
+    /// <summary>
+    /// The glass turn's easing: a cubic Bézier (0.25, 0.1, 0.1, 1) — a brief acceleration, then a long, gentle
+    /// deceleration, the motion curve of a quick system transition rather than a linear spin.
+    /// </summary>
+    internal static double GlassEase(double t)
+    {
+        if (t <= 0)
+            return 0;
+        if (t >= 1)
+            return 1;
+        const double x1 = 0.25, y1 = 0.1, x2 = 0.1, y2 = 1;
+        static double Bezier(double u, double a, double b) => 3 * a * u * (1 - u) * (1 - u) + 3 * b * u * u * (1 - u) + u * u * u;
+        static double Slope(double u, double a, double b) =>
+            3 * a * (1 - u) * (1 - u) + 6 * (b - a) * u * (1 - u) + 3 * (1 - b) * u * u;
+        // Solve x(u) = t (Newton, then bisection when the slope is flat), and return y(u).
+        var guess = t;
+        for (var i = 0; i < 8; i++)
+        {
+            var error = Bezier(guess, x1, x2) - t;
+            var slope = Slope(guess, x1, x2);
+            if (Math.Abs(error) < 1e-6)
+                return Bezier(guess, y1, y2);
+            if (Math.Abs(slope) < 1e-6)
+                break;
+            guess = Math.Clamp(guess - error / slope, 0, 1);
+        }
+        double lo = 0, hi = 1;
+        guess = t;
+        for (var i = 0; i < 30; i++)
+        {
+            if (Bezier(guess, x1, x2) < t)
+                lo = guess;
+            else
+                hi = guess;
+            guess = (lo + hi) / 2;
+        }
+        return Bezier(guess, y1, y2);
+    }
+
+    /// <summary>How far the glass disc has turned, 0 (old face up) to π (new face up).</summary>
+    internal double GlassAngle => IsFlipping ? Math.PI * GlassEase(_flipClock / GlassFlipDuration) : Math.PI;
+
+    /// <summary>Narrower than this, a face seen edge-on isn't drawn (no hairline stripe at the turn).</summary>
+    private const double EdgeOn = 0.035;
+
+    /// <summary>
+    /// Labels on a turning glass face: fully there while the face is wide, gone before it is narrow enough for the
+    /// squeeze to show, so text is never seen distorted.
+    /// </summary>
+    internal double FlipLabelOpacity(bool oldFace, int index)
+    {
+        if (!IsFlipping || !GlassStyle)
+            return 1;
+        var w = SliceFlipWidth(oldFace, index);
+        var t = Math.Clamp((w - 0.55) / 0.35, 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+
     private double _flipClock = -1;   // seconds into the running flip; -1 none
     private bool _flipQueued;         // Tab again during a flip: flip once more after it
     private bool _swapping;           // FaceSwapping is being handled (Items change for the flip, not for new files)
@@ -146,6 +212,15 @@ public sealed partial class DonutMenu
             return 0;
         if (!IsFlipping)
             return oldFace ? 0 : 1;
+        if (GlassStyle)
+        {
+            // One disc: the old face is up until it turns edge-on halfway, then the new face.
+            var angle = GlassAngle;
+            if (oldFace != angle < Math.PI / 2)
+                return 0;
+            var w = Math.Abs(Math.Cos(angle));
+            return w < EdgeOn ? 0 : w;
+        }
         var u = Progress(oldFace, index);
         if (oldFace ? u >= 0.5 : u < 0.5)
             return 0;
@@ -162,10 +237,11 @@ public sealed partial class DonutMenu
         var width = SliceFlipWidth(oldFace, index);
         if (GlassStyle)
         {
-            // Mandarin: the wheel turns over about its vertical axis, like a glass disc, and rises a little as it does.
+            // Mandarin: the wheel turns over about its vertical axis like a glass disc, easing back a touch at the
+            // middle of the turn (as an object does when it tips away), then settling to full size face up.
             var c = Center;
-            var lift = 1 + FlipLift * 0.04;
-            return Matrix.CreateTranslation(-c.X, -c.Y) * Matrix.CreateScale(width * lift, lift) *
+            var depth = 1 - 0.05 * FlipLift;
+            return Matrix.CreateTranslation(-c.X, -c.Y) * Matrix.CreateScale(width * depth, depth) *
                    Matrix.CreateTranslation(c.X, c.Y);
         }
         var mid = oldFace ? _oldFace![index].Mid : IsEditMode ? _mid[index].Value : DonutGeometry.MidAngle(index, Count);
@@ -358,7 +434,7 @@ public sealed partial class DonutMenu
         // A single queued turn is the maximum; extra key presses toggle its parity.
         for (var turn = 0; turn < 2 && IsFlipping; turn++)
         {
-            var remaining = FlipDuration - _flipClock;
+            var remaining = ActiveFlipDuration - _flipClock;
             if (dt < remaining)
             {
                 _flipClock += dt;

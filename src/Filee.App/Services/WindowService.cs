@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using Filee.App.ViewModels;
 using Filee.App.Views;
 using Filee.Core.Conversion;
@@ -185,6 +186,13 @@ public sealed class WindowService(ILocalizer loc, IServiceProvider services, Mem
         services.GetService<ThemeService>()?.ApplyWindowClass(window);
         if (window is not MainWindow)
             KeepMainOutOfTheWay();
+        // Mandarin, macOS: a floating panel's card sits on the system's own glass (NativeGlass).
+        if (NativeGlass.Wanted)
+            window.Opened += (_, _) =>
+            {
+                if (window.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("mandarin-panel")) is { } panel)
+                    NativeGlass.Behind(window, panel);
+            };
     }
 
     /// <summary>

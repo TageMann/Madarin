@@ -27,6 +27,15 @@ public partial class RadialWindow : Window
 
     public DonutMenu DonutControl => Donut;
 
+    /// <summary>
+    /// Whether a drag over the window may reach the donut now (the controller's answer: a gesture is open and nothing
+    /// was dropped yet). A window still up while the progress ring finishes, or left behind by a gesture that ended,
+    /// refuses drags outright: a plain drag passing over where the wheel last was must never open it there.
+    /// </summary>
+    internal Func<bool>? AcceptsDrops { get; set; }
+
+    private bool Refuses => AcceptsDrops is { } accepts && !accepts();
+
     /// <summary>A drag entered the window, with or without files (for the log: did the drag reach the donut at all).</summary>
     public event Action? DragEntered;
 
@@ -54,6 +63,12 @@ public partial class RadialWindow : Window
 
     private void OnDragEnter(object? sender, DragEventArgs e)
     {
+        if (Refuses)
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
         DragEntered?.Invoke();
         // Only the names count while dragging: a browser's files are read again from the drop.
         var dragged = DraggedFiles.Read(e.DataTransfer, forDrop: false);
@@ -74,6 +89,12 @@ public partial class RadialWindow : Window
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
+        if (Refuses)
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
         var at = e.GetPosition(Donut);
         var hit = Donut.HitTest(at);
         _dragOverEvents++;
@@ -95,6 +116,12 @@ public partial class RadialWindow : Window
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
+        if (Refuses)
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
         var hit = Donut.HitTest(e.GetPosition(Donut));
         DragSummary?.Invoke(_dragOverEvents, hit, Donut.LitAmount(hit.Index), true);
         Donut.CollapseGroup();

@@ -216,6 +216,14 @@ public sealed class UserDataStore
             Settings.MergePdfApplied = true;
             customChanged = File.Exists(SettingsPath);
         }
+        // Mandarin 3: on macOS the interface is set in the system font (San Francisco), once; Settings > Theme can turn it off.
+        if (mandarinProfile && !Settings.LiquidDesignApplied)
+        {
+            if (OperatingSystem.IsMacOS())
+                Settings.Theme.UseSystemFont = true;
+            Settings.LiquidDesignApplied = true;
+            customChanged = File.Exists(SettingsPath);
+        }
         // Custom build: an official update would replace this build, so the automatic check is turned off, once.
         if (mandarinProfile && !Settings.CustomBuildUpdatesOff)
         {

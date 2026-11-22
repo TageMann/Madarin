@@ -289,6 +289,12 @@ public sealed class AppSettings
     public bool MergePdfApplied { get; set; }
 
     /// <summary>
+    /// Mandarin 3: true once the macOS system font (San Francisco) was switched on for the new design. A missing value
+    /// reads as false.
+    /// </summary>
+    public bool LiquidDesignApplied { get; set; }
+
+    /// <summary>
     /// Custom build: play sound effects (the donut opening, a slice under the pointer, a drop, a finished or failed
     /// conversion). macOS only for now. A missing value reads as on.
     /// </summary>
@@ -302,6 +308,12 @@ public sealed class AppSettings
     /// macOS only. A missing value reads as on.
     /// </summary>
     public bool TrackpadHaptics { get; set; } = true;
+
+    /// <summary>
+    /// Mandarin, macOS: the wheel, the ring and the floating panels sit on the system's own glass (Liquid Glass on
+    /// macOS 26 and later, the frosted HUD material before). Off: Mandarin's drawn glass only.
+    /// </summary>
+    public bool NativeGlass { get; set; } = true;
 
     public DonutSettings Donut { get; set; } = new();
 

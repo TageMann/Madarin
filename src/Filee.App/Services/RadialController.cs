@@ -294,11 +294,18 @@ public sealed class RadialController(
         // after any hide and before Avalonia releases it at quit, including a quit while it is still visible (#805).
         void RestoreNativeWindow() => platform.RestoreWindow(window.TryGetPlatformHandle()?.Handle ?? 0);
         window.Closing += (_, _) => RestoreNativeWindow();
+        // Mandarin, macOS: the system's own glass under the wheel's disc and the progress ring (NativeGlass).
+        var glass = NativeGlass.For(window);
         window.PropertyChanged += (_, change) =>
         {
             if (change.Property == RadialWindow.IsVisibleProperty && !change.GetNewValue<bool>())
+            {
+                glass?.Hide();
+                donut.ClearGlassDisc();
                 RestoreNativeWindow();
+            }
         };
+        glass?.UnderDisc(donut);
 
         // On native Wayland, hiding an xdg_toplevel surface causes the compositor to destroy its surface,
         // and re-showing raises an InvalidOperationException. Track Closed to re-create on the next gesture.
@@ -311,6 +318,10 @@ public sealed class RadialController(
             };
         }
 
+        // Root cause of the wheel opening without ⌘, where it was last used: the window stays up (invisible apart from the
+        // ring) while a conversion's ring finishes, and a plain Finder drag passing over that spot entered it, loaded
+        // its files and opened the wheel there. Only an open gesture with nothing dropped yet takes drags now.
+        window.AcceptsDrops = () => AcceptsDrops(window);
         window.DragEntered += () => (_dragReachedDonut, _dragEndedOnDonut) = (true, false);
         // Tells "the drag reached the donut but brought no files" apart, with what it brought (file promises, say).
         window.DragWithoutFiles += formats =>
@@ -321,7 +332,7 @@ public sealed class RadialController(
         };
         window.FilesEntered += files =>
         {
-            if (viewModel.IsClickMode || SameFiles(files, viewModel.Files) || SameWebFiles(files, viewModel.Files))
+            if (!AcceptsDrops(window) || viewModel.IsClickMode || SameFiles(files, viewModel.Files) || SameWebFiles(files, viewModel.Files))
                 return;
             viewModel.Load(files, clickMode: false, _dragBackFace);
             donut.PlayOpenAnimation();
@@ -841,6 +852,9 @@ public sealed class RadialController(
         donut.BeginProgress();
         donut.SetProgress(job.Progress / 100);
         job.PropertyChanged += OnProgressJobChanged;
+        // The job may have ended before the ring was watching it: finish the ring now rather than leave it up.
+        if (!job.IsRunning)
+            OnProgressJobChanged(job, new PropertyChangedEventArgs(nameof(JobViewModel.IsRunning)));
         _handOffTimer = DispatcherTimer.RunOnce(() =>
         {
             if (_progressJob == job && job.IsRunning)
@@ -867,7 +881,21 @@ public sealed class RadialController(
             conversions.ShowInToast(job); // the toast explains what went wrong
         DetachProgress();
         donut.CompleteProgress(outcome, HideWindow);
+        // The ring's ✓ calls HideWindow when it has faded. Should that never come (the animation stopped, a display
+        // asleep), the window must not stay up where the wheel was: it is hidden anyway, unless a new gesture took it.
+        var shown = _shownGeneration;
+        DispatcherTimer.RunOnce(() =>
+        {
+            if (shown == _shownGeneration && _window is { IsVisible: true } && _progressJob is null)
+                HideWindow();
+        }, RingGiveUpAfter);
     }
+
+    /// <summary>How long a finished ring may stay up before its window is hidden regardless.</summary>
+    internal static readonly TimeSpan RingGiveUpAfter = TimeSpan.FromSeconds(6);
+
+    // Counts PlaceAndShow calls: a timer from an earlier showing leaves a newer one alone.
+    private int _shownGeneration;
 
     /// <summary>Hands the running job to the toast with a short "shrink away" of the ring.</summary>
     private void HandOffToToast()
@@ -896,6 +924,13 @@ public sealed class RadialController(
         _progressJob = null;
         viewModel.ProgressJob = null;
     }
+
+    /// <summary>
+    /// A drag may reach the donut: it is showing for a gesture (or a click) that is still open, nothing was dropped on
+    /// it yet, and it isn't showing the progress ring.
+    /// </summary>
+    internal bool AcceptsDrops(RadialWindow window) =>
+        _visible && !_dropped && window.IsVisible && !window.DonutControl.IsInProgressMode;
 
     private void HideWindow()
     {
@@ -1022,6 +1057,7 @@ public sealed class RadialController(
         var position = WindowPosition(cursor, screen?.WorkingArea, sidePx);
 
         Motion.Refresh();
+        _shownGeneration++;
         window.Position = position;
         if (!window.IsVisible)
             window.Show();

@@ -43,6 +43,8 @@ public sealed class ProgressRingWindow : Window
                 job.OpenFolderCommand.Execute(null);
         };
         Content = _ring;
+        // macOS: the system's own glass under the ring (NativeGlass).
+        Services.NativeGlass.For(this)?.UnderDisc(_ring);
     }
 
     internal DonutMenu Ring => _ring;

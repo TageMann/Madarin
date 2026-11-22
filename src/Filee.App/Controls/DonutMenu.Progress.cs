@@ -386,7 +386,8 @@ public sealed partial class DonutMenu
     private void DrawGlassDisc(DrawingContext context, Point center, double radius)
     {
         DrawPlateShadow(context, center, radius);
-        context.DrawEllipse(IsDarkGlass ? DiscFillDark : DiscFill, null, center, radius, radius);
+        context.DrawEllipse(NativeGlassBehind ? IsDarkGlass ? DarkSliceOverGlass : LightSliceOverGlass
+            : IsDarkGlass ? DiscFillDark : DiscFill, null, center, radius, radius);
         var disc = new EllipseGeometry(new Rect(center.X - radius, center.Y - radius, radius * 2, radius * 2));
         context.DrawGeometry(Sheen, null, disc);
         context.DrawEllipse(null, new Pen(IsDarkGlass ? DarkRim : LightRim, 1.4), center, radius - 0.7, radius - 0.7);
@@ -397,6 +398,7 @@ public sealed partial class DonutMenu
     {
         var outer = plateRadius + 4;
         var lens = RingRadius - RingStroke / 2 - 3;
+        _glassDisc = outer;
         DrawGlassDisc(context, center, outer);
 
         var badge = _outcome is null ? 0 : Math.Clamp(_badge.Value, 0, 1.2);

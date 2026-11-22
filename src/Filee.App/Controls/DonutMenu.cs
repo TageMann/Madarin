@@ -930,12 +930,24 @@ public sealed partial class DonutMenu : Control
         var typeface = new Typeface(GetValue(TextElement.FontFamilyProperty), FontStyle.Normal, FontWeight.SemiBold);
         var typefaceRegular = new Typeface(GetValue(TextElement.FontFamilyProperty));
 
-        if (_progressMode)
+        _glassDisc = 0;
+        try
         {
-            RenderProgress(context, center, r1, r2, typeface, typefaceRegular);
-            return;
+            if (_progressMode)
+            {
+                RenderProgress(context, center, r1, r2, typeface, typefaceRegular);
+                return;
+            }
+            RenderWheel(context, center, r1, r2, n, typeface, typefaceRegular);
         }
+        finally
+        {
+            ReportGlassDisc(center, _glassDisc);
+        }
+    }
 
+    private void RenderWheel(DrawingContext context, Point center, double r1, double r2, int n, Typeface typeface, Typeface typefaceRegular)
+    {
         RenderRing(context, center, r1, r2, n, typeface, typefaceRegular);
 
         var reaching = _expanded >= 0 ? _expanded : _pendingGroup;
@@ -1014,8 +1026,11 @@ public sealed partial class DonutMenu : Control
                 DrawSliceSurface(context, wedge, item.IsEnabled, emphasis);
 
                 var hot = (i == ActiveIndex || i == _dropTargetIndex) && item.IsEnabled;
-                DrawSliceLabel(context, labels[i], item.IsEnabled, hot);
-                DrawGroupMark(context, item, center, r2, mid, hot);
+                using (context.PushOpacity(FlipLabelOpacity(false, i)))
+                {
+                    DrawSliceLabel(context, labels[i], item.IsEnabled, hot);
+                    DrawGroupMark(context, item, center, r2, mid, hot);
+                }
             }
         }
 
@@ -1039,11 +1054,17 @@ public sealed partial class DonutMenu : Control
                 {
                     var wedge = CreateWedge(center, w1, w2, slice.Mid, slice.Span);
                     DrawSliceSurface(context, wedge, slice.Item.IsEnabled, slice.Emphasis);
-                    DrawSliceLabel(context, oldLabels[i], slice.Item.IsEnabled, slice.Hot && slice.Item.IsEnabled);
-                    DrawGroupMark(context, slice.Item, center, r2, slice.Mid, slice.Hot && slice.Item.IsEnabled);
+                    using (context.PushOpacity(FlipLabelOpacity(true, i)))
+                    {
+                        DrawSliceLabel(context, oldLabels[i], slice.Item.IsEnabled, slice.Hot && slice.Item.IsEnabled);
+                        DrawGroupMark(context, slice.Item, center, r2, slice.Mid, slice.Hot && slice.Item.IsEnabled);
+                    }
                 }
             }
         }
+
+        if (GlassStyle && IsFlipping)
+            DrawFlipGlint(context, center, r1, r2);
 
         if (IsEditMode && _previewSpan.Value > 0.01)
             DrawPreview(context, center, r1, r2, typeface, typefaceRegular);

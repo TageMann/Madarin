@@ -61,6 +61,21 @@
           <SolidColorBrush x:Key="SliderTrackFill" Color="#1F000000" />
           <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#29000000" />
           <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#33000000" />
+          <!-- Mandarin 3 -->
+          <SolidColorBrush x:Key="MandarinSwitchOffBrush" Color="#29000000" />
+          <SolidColorBrush x:Key="MandarinSwitchOffHoverBrush" Color="#38000000" />
+          <LinearGradientBrush x:Key="MandarinPanelOverGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#99FFFFFF" Offset="0" />
+            <GradientStop Color="#80F7F7F9" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinButtonBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#F2FFFFFF" Offset="0" />
+            <GradientStop Color="#D9FAFAFC" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinButtonRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#14000000" Offset="0" />
+            <GradientStop Color="#29000000" Offset="1" />
+          </LinearGradientBrush>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <LinearGradientBrush x:Key="MandarinWindowBrush" StartPoint="20%,0%" EndPoint="80%,100%">
@@ -102,6 +117,21 @@
           <SolidColorBrush x:Key="SliderTrackFill" Color="#2EFFFFFF" />
           <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#3DFFFFFF" />
           <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#4DFFFFFF" />
+          <!-- Mandarin 3 -->
+          <SolidColorBrush x:Key="MandarinSwitchOffBrush" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="MandarinSwitchOffHoverBrush" Color="#47FFFFFF" />
+          <LinearGradientBrush x:Key="MandarinPanelOverGlassBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#802C2C31" Offset="0" />
+            <GradientStop Color="#991E1E22" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinButtonBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#38FFFFFF" Offset="0" />
+            <GradientStop Color="#24FFFFFF" Offset="1" />
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MandarinButtonRimBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#40FFFFFF" Offset="0" />
+            <GradientStop Color="#14FFFFFF" Offset="1" />
+          </LinearGradientBrush>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <!-- Sliders: the lit track is the accent (SoftPalette sets SliderTrackValueFill), the thumb a white pill -->
@@ -116,6 +146,53 @@
         <GradientStop Color="#FFFF2E1A" Offset="0" />
         <GradientStop Color="#FFFF5A1F" Offset="1" />
       </LinearGradientBrush>
+      <!-- A macOS switch: its label on the left, a small capsule switch on the right of the row; the accent fills
+           the track when on, a white knob with a soft shadow slides across. No "On" / "Off" text beside it. -->
+      <ControlTheme x:Key="MandarinSwitch" TargetType="ToggleSwitch">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
+        <Setter Property="KnobTransitions">
+          <Transitions>
+            <DoubleTransition Property="Canvas.Left" Duration="0:0:0.22" Easing="CubicEaseOut" />
+          </Transitions>
+        </Setter>
+        <Setter Property="Template">
+          <ControlTemplate>
+            <Grid Background="{TemplateBinding Background}" ColumnDefinitions="*,Auto" MinHeight="26">
+              <ContentPresenter x:Name="PART_ContentPresenter" VerticalAlignment="Center" Margin="0,0,16,0"
+                                Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                TextWrapping="Wrap" RecognizesAccessKey="True" />
+              <Grid Grid.Column="1" Width="38" Height="22" VerticalAlignment="Center" TemplatedControl.IsTemplateFocusTarget="True">
+                <Border x:Name="Track" CornerRadius="11" Background="{DynamicResource MandarinSwitchOffBrush}" />
+                <Border x:Name="TrackOn" CornerRadius="11" Background="{DynamicResource AccentBrush}" Opacity="0">
+                  <Border.Transitions>
+                    <Transitions>
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                    </Transitions>
+                  </Border.Transitions>
+                </Border>
+                <Canvas x:Name="PART_SwitchKnob" Width="16" Height="22" HorizontalAlignment="Left">
+                  <Grid x:Name="PART_MovingKnobs" Width="22" Height="22" Background="Transparent">
+                    <Border x:Name="Knob" Width="18" Height="18" CornerRadius="9" Background="White"
+                            BoxShadow="0 1 2 0 #33000000, 0 0 0 0.5 #1F000000" />
+                  </Grid>
+                </Canvas>
+              </Grid>
+            </Grid>
+          </ControlTemplate>
+        </Setter>
+        <Style Selector="^:checked /template/ Border#TrackOn">
+          <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#Track">
+          <Setter Property="Background" Value="{DynamicResource MandarinSwitchOffHoverBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+          <Setter Property="Opacity" Value="0.45" />
+        </Style>
+      </ControlTheme>
     </ResourceDictionary>
   </Styles.Resources>
 
@@ -193,10 +270,35 @@
     <Setter Property="CornerRadius" Value="18" />
   </Style>
 
+  <!-- ───────── Mandarin 3: macOS controls ───────── -->
+  <Style Selector="Window:not(.material-you) ToggleSwitch">
+    <Setter Property="Theme" Value="{StaticResource MandarinSwitch}" />
+  </Style>
+  <!-- Push buttons are capsules, as on macOS 26: a bright glass pane with a hairline rim; pressing sinks them a touch. -->
+  <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.navlink):not(.choice-card):not(.close-round):not(.reset):not(.preset-pill):not(.swatch):not(.tool):not(.corner):not(.time):not(.way):not(.value):not(.link):not(.hub)">
+    <Setter Property="CornerRadius" Value="999" />
+    <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.navlink):not(.choice-card):not(.close-round):not(.reset):not(.preset-pill):not(.swatch):not(.tool):not(.corner):not(.time):not(.way):not(.value):not(.link):not(.hub):pressed">
+    <Setter Property="RenderTransform" Value="scale(0.97)" />
+  </Style>
+  <Style Selector="Window.reduced-motion Button:pressed">
+    <Setter Property="RenderTransform" Value="none" />
+  </Style>
+  <!-- Panels with the system's glass behind them (NativeGlass): a thin frost over it, so the real blur shows through. -->
+  <Style Selector="Window.native-glass Border.mandarin-panel">
+    <Setter Property="Background" Value="{DynamicResource MandarinPanelOverGlassBrush}" />
+  </Style>
+
   <!-- ───────── Buttons: glass panes; the accent one keeps the accent colour and its readable label ───────── -->
   <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round) /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource MandarinControlBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource MandarinRimBrush}" />
+    <Setter Property="Background" Value="{DynamicResource MandarinButtonBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MandarinButtonRimBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
   </Style>
   <Style Selector="Window:not(.material-you) Button:not(.icon):not(.ghost):not(.accent):not(.navlink):not(.choice-card):not(.close-round):pointerover /template/ ContentPresenter#PART_ContentPresenter">

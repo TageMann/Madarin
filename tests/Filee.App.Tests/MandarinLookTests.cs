@@ -61,7 +61,8 @@ public class MandarinLookTests
             vm.FitToThisDonut();
             Assert.False(string.IsNullOrEmpty(vm.CenterPill));
             Assert.EndsWith("B", vm.CenterPill);
-            var window = new RadialWindow { DataContext = vm };
+            // A wallpaper behind the window, as the desktop is behind the wheel on a Mac (the screenshot has no blur).
+            var window = new RadialWindow { DataContext = vm, Background = Wallpaper(dark) };
             window.Show();
             var donut = window.DonutControl;
             Assert.True(donut.GlassStyle);
@@ -70,6 +71,10 @@ public class MandarinLookTests
             RenderTests.Save(window, $"mandarin-wheel-{suffix}.png");
 
             donut.Flip();
+            donut.Advance(0.045);
+            RenderTests.Save(window, $"mandarin-flip-a-{suffix}.png");
+            donut.Advance(0.03);
+            RenderTests.Save(window, $"mandarin-flip-b-{suffix}.png");
             Wait(() => !donut.IsFlipping, 2);
             Wait(() => false, 1);
             donut.SetExternalHighlight(1);
@@ -101,7 +106,7 @@ public class MandarinLookTests
             var tool = (store.FindPreset(BuiltInData.BackgroundId) ?? BuiltInData.BackgroundPresets().Single()).Clone();
             tool.Image.BackdropLook = null;
             var vm = new BackgroundViewModel([Photo(folder, "screenshot.png", 1000, 640)], tool, AppHost.Get<ILocalizer>(), store, (_, _) => { });
-            var window = new BackgroundWindow { DataContext = vm, Width = 1180, Height = 820 };
+            var window = new BackgroundWindow { DataContext = vm, Width = 1180, Height = 820, Background = Wallpaper(dark) };
             window.Show();
             // At its usual size the controls are on the left and the picture fills the right.
             Assert.True(window.IsWideLayout);
@@ -142,7 +147,7 @@ public class MandarinLookTests
             var starts = new List<(IReadOnlyList<string> Paths, Preset Preset)>();
             var vm = new ImageEditViewModel([Photo(folder, "flowers.png", 800, 1200)], tool, AppHost.Get<ILocalizer>(),
                 AppHost.Get<UserDataStore>(), (_, chosen) => chosen, (paths, preset) => starts.Add((paths, preset)), WindowService.PictureSize);
-            var window = new ImageEditWindow { DataContext = vm };
+            var window = new ImageEditWindow { DataContext = vm, Background = Wallpaper(dark) };
             window.Show();
             Wait(() => vm.PreviewImage is not null);
             vm.Exposure = 0.5;
@@ -243,7 +248,7 @@ public class MandarinLookTests
             var exports = new List<(string Path, Preset Preset)>();
             var vm = new ClipWindowViewModel([memo], BuiltInData.TrimAudioPreset(), AppHost.Get<ILocalizer>(),
                 AppHost.Get<UserDataStore>(), new Sound(41.74), _ => "m4a", (path, preset) => exports.Add((path, preset)));
-            var window = new TrimAudioWindow { DataContext = vm };
+            var window = new TrimAudioWindow { DataContext = vm, Background = Wallpaper(dark) };
             window.Show();
             Wait(() => vm.Loudness.Count > 0 && vm.Duration > 0);
             Assert.True(vm.IsSoundOnly);
@@ -290,4 +295,17 @@ public class MandarinLookTests
         public Task PlayAsync(string path, ClipEdit clip, int height, Action<byte[], int, int, double> onFrame, CancellationToken cancellationToken) =>
             Task.CompletedTask;
     }
+
+    /// <summary>A desktop picture like the user's: warm orange to violet (light), deep plum to navy (dark).</summary>
+    internal static Avalonia.Media.IBrush Wallpaper(bool dark) => new Avalonia.Media.LinearGradientBrush
+    {
+        StartPoint = new Avalonia.RelativePoint(0, 0, Avalonia.RelativeUnit.Relative),
+        EndPoint = new Avalonia.RelativePoint(1, 1, Avalonia.RelativeUnit.Relative),
+        GradientStops =
+        {
+            new Avalonia.Media.GradientStop(Avalonia.Media.Color.Parse(dark ? "#3B1D2E" : "#F7A13A"), 0),
+            new Avalonia.Media.GradientStop(Avalonia.Media.Color.Parse(dark ? "#2A1F3D" : "#F06A4D"), 0.5),
+            new Avalonia.Media.GradientStop(Avalonia.Media.Color.Parse(dark ? "#141A2E" : "#A98BD0"), 1),
+        },
+    };
 }

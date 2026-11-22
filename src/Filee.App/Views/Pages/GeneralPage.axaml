@@ -39,6 +39,10 @@
                       IsChecked="{Binding TrackpadHaptics}" IsVisible="{Binding SupportsFeedbackEffects}" />
         <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource general.feedback_hint}"
                    IsVisible="{Binding SupportsFeedbackEffects}" />
+        <ToggleSwitch x:Name="NativeGlassSwitch" Content="{DynamicResource general.native_glass}"
+                      IsChecked="{Binding NativeGlass}" IsVisible="{Binding SupportsNativeGlass}" />
+        <TextBlock Classes="caption" TextWrapping="Wrap" Text="{DynamicResource general.native_glass_hint}"
+                   IsVisible="{Binding SupportsNativeGlass}" />
         <StackPanel>
           <TextBlock Classes="label" Text="{DynamicResource general.close_action}" />
           <ComboBox ItemsSource="{Binding CloseChoices}" SelectedItem="{Binding CloseChoice}" MinWidth="240" AutomationProperties.Name="{DynamicResource general.close_action}" />

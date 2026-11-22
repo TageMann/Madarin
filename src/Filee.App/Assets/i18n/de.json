@@ -2008,5 +2008,7 @@
   "trim.silent_ends": "Trim silent ends automatically",
   "trim.apply": "Apply",
   "app.byline": "by Tage",
-  "about.credit": "Mandarin, by Tage Hogness. Built with source code from Filee (filee.sh, github.com/KnifeLemon/Filee) by KnifeLemon and contributors, used under the MIT license."
+  "about.credit": "Mandarin, by Tage Hogness. Built with source code from Filee (filee.sh, github.com/KnifeLemon/Filee) by KnifeLemon and contributors, used under the MIT license.",
+  "general.native_glass": "Use macOS glass",
+  "general.native_glass_hint": "The wheel and panels sit on the system's own glass (Liquid Glass on macOS 26 and later). Turn this off if they look wrong on your Mac."
 }

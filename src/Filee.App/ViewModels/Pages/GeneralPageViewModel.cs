@@ -46,6 +46,7 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
         _soundEffects = store.Settings.SoundEffects;
         _soundVolume = Math.Clamp(store.Settings.SoundVolume, 0, 1);
         _trackpadHaptics = store.Settings.TrackpadHaptics;
+        _nativeGlass = store.Settings.NativeGlass;
         _contextMenu = store.Settings.ContextMenuEnabled;
         _noHistory = !store.Settings.KeepHistory;
         _historyLimit = store.Settings.EffectiveHistoryLimit;
@@ -184,6 +185,12 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _soundEffects;
     [ObservableProperty] private double _soundVolume;
     [ObservableProperty] private bool _trackpadHaptics;
+
+    /// <summary>Mandarin, macOS: the wheel and panels sit on the system's own glass (see NativeGlass).</summary>
+    [ObservableProperty] private bool _nativeGlass;
+
+    /// <summary>The native glass switch is offered on macOS only.</summary>
+    public bool SupportsNativeGlass => OperatingSystem.IsMacOS();
     [ObservableProperty] private string? _dockStatus;
     [ObservableProperty] private bool _contextMenu;
     [ObservableProperty] private string? _libraryMessage;
@@ -256,6 +263,8 @@ public sealed partial class GeneralPageViewModel : ObservableObject, IDisposable
     }
 
     partial void OnTrackpadHapticsChanged(bool value) => Save(s => s.TrackpadHaptics = value);
+
+    partial void OnNativeGlassChanged(bool value) => Save(s => s.NativeGlass = value);
 
     partial void OnContextMenuChanged(bool value)
     {
