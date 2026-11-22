@@ -225,7 +225,7 @@ public sealed partial class DonutMenu
         var opening = _open.Length == 0 ? 1 : Math.Clamp(_open.Average(), 0, 1);
         if (opening <= 0.001)
             return;
-        var scale = 0.86 + 0.14 * opening;
+        var scale = 0.9 + 0.1 * opening;
         var lift = 1 - 0.05 * FlipLift; // eases back with the slices as the disc turns
         // The native glass under the plate: a disc no wider than the plate as drawn (round while it turns).
         if (opening > 0.6 && !_closing)

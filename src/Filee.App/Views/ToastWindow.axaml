@@ -19,10 +19,11 @@
   <Window.Styles>
     <Style Selector="Window:not(.reduced-motion) ItemsControl#Jobs ContentPresenter">
       <Style.Animations>
-        <Animation Duration="0:0:0.35" Easing="BackEaseOut" FillMode="Forward">
+        <!-- Mandarin: a short glide in that settles without overshoot (no bounce) -->
+        <Animation Duration="0:0:0.32" Easing="QuinticEaseOut" FillMode="Forward">
           <KeyFrame Cue="0%">
             <Setter Property="Opacity" Value="0" />
-            <Setter Property="Margin" Value="40,0,-40,0" />
+            <Setter Property="Margin" Value="18,0,-18,0" />
           </KeyFrame>
           <KeyFrame Cue="100%">
             <Setter Property="Opacity" Value="1" />

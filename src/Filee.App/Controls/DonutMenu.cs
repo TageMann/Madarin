@@ -879,11 +879,12 @@ public sealed partial class DonutMenu : Control
                 for (var i = 0; i < _open.Length; i++)
                 {
                     // Keep the wave brief even with many slices; a late frame must not stretch its duration.
-                    var delay = _closing ? 0 : Math.Min(i * OpenStagger, 0.072);
-                    var t = Math.Clamp((_openClock - delay) / (_closing ? 0.14 : OpenDuration), 0, 1);
+                    // Mandarin's glass wheel appears as one object: no stagger, a critically damped settle.
+                    var delay = _closing || GlassStyle ? 0 : Math.Min(i * OpenStagger, 0.072);
+                    var t = Math.Clamp((_openClock - delay) / (_closing ? 0.14 : GlassStyle ? GlassOpenDuration : OpenDuration), 0, 1);
                     _open[i] = _closing
                         ? (i < _closeFrom.Length ? _closeFrom[i] : 1) * (1 - EaseInCubic(t))
-                        : EaseOutBack(t);
+                        : GlassStyle ? EaseOutSettle(t) : EaseOutBack(t);
                     done &= t >= 1;
                 }
                 if (done)
@@ -908,6 +909,17 @@ public sealed partial class DonutMenu : Control
         var callback = _closeCallback;
         _closeCallback = null;
         callback?.Invoke();
+    }
+
+    /// <summary>The glass wheel's opening: quick, then settling without a bounce.</summary>
+    private const double GlassOpenDuration = 0.26;
+
+    /// <summary>A critically damped spring from 0 to 1 (no overshoot), normalised to end exactly at 1.</summary>
+    internal static double EaseOutSettle(double t)
+    {
+        const double omega = 7;
+        static double X(double u) => 1 - (1 + omega * u) * Math.Exp(-omega * u);
+        return t >= 1 ? 1 : X(t) / X(1);
     }
 
     private static double EaseOutBack(double t)
@@ -1007,9 +1019,9 @@ public sealed partial class DonutMenu : Control
                 continue;
             var offset = DonutGeometry.PointAt(new Point(0, 0), hover * PopOut, mid);
 
-            // Open animation: scale up from the centre with a small twist.
-            var scale = 0.78 + 0.22 * open;
-            var rotate = (1 - Math.Min(open, 1)) * -0.12;
+            // Open animation: scale up from the centre with a small twist (the glass wheel: a gentle scale, no twist).
+            var scale = GlassStyle ? 0.9 + 0.1 * open : 0.78 + 0.22 * open;
+            var rotate = GlassStyle ? 0 : (1 - Math.Min(open, 1)) * -0.12;
             var transform =
                 Matrix.CreateTranslation(-center.X, -center.Y) *
                 Matrix.CreateRotation(rotate) *
