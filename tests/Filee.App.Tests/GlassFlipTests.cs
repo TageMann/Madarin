@@ -95,4 +95,36 @@ public class GlassFlipTests
         }
         finally { Motion.Set(previous); }
     }
+
+    /// <summary>Frames of the turn, for looking at (the looks branch): a quarter, the middle and three quarters.</summary>
+    [AvaloniaFact]
+    public void Frames_of_the_turn()
+    {
+        TestServices.EnsureInitialized("en");
+        var previous = Motion.Enabled;
+        try
+        {
+            Motion.Set(true);
+            var donut = Glass();
+            donut.CenterPill = "2.2 MB";
+            donut.Bind(DonutMenu.AccentBrushProperty, Avalonia.Controls.ResourceNodeExtensions.GetResourceObservable(donut, "AccentBrush"));
+            var window = new Avalonia.Controls.Window { Content = donut, Width = 420, Height = 420, Background = MandarinLookTests.Wallpaper(false) };
+            window.Show();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            donut.SetExternalHighlight(2);
+            for (var i = 0; i < 30; i++)
+                donut.Advance(1 / 60.0);
+            donut.Flip();
+            var shown = 0.0;
+            foreach (var (at, name) in new[] { (0.03, "a"), (0.055, "b"), (0.09, "c"), (0.16, "d") })
+            {
+                donut.Advance(at - shown);
+                shown = at;
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                RenderTests.Save(window, $"mandarin-turn-{name}.png");
+            }
+            window.Close();
+        }
+        finally { Motion.Set(previous); }
+    }
 }

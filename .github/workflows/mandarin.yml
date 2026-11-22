@@ -60,7 +60,7 @@ jobs:
       - name: Mandarin look screenshots
         continue-on-error: true
         run: |
-          xvfb-run -a env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 dotnet test tests/Filee.App.Tests/Filee.App.Tests.csproj --no-build -c Release --filter "FullyQualifiedName~MandarinLookTests|FullyQualifiedName~RenderTests.Main_window_pages_render"
+          xvfb-run -a env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 dotnet test tests/Filee.App.Tests/Filee.App.Tests.csproj --no-build -c Release --filter "FullyQualifiedName~MandarinLookTests|FullyQualifiedName~RenderTests.Main_window_pages_render|FullyQualifiedName~GlassFlipTests"
 
       - name: Publish look screenshots
         continue-on-error: true

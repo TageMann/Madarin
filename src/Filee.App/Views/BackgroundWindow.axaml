@@ -51,7 +51,7 @@
       <Setter Property="Foreground" Value="{DynamicResource MandarinTextBrush}" />
     </Style>
     <Style Selector="RadioButton.segment:checked /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource MandarinControlHoverBrush}" />
+      <Setter Property="Background" Value="{DynamicResource MandarinSegmentOnBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource MandarinTitleBrush}" />
       <Setter Property="BoxShadow" Value="0 1 3 0 #22000000" />
     </Style>
@@ -240,12 +240,6 @@
               <Border Classes="segments">
                 <UniformGrid Columns="4">
               <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
-                         IsChecked="{Binding IsAuto, Mode=OneWay}" Content="{DynamicResource background.auto}"
-                         Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Auto}" />
-              <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
-                         IsChecked="{Binding IsOriginal, Mode=OneWay}" Content="{DynamicResource background.original}"
-                         Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Original}" />
-              <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
                          IsChecked="{Binding IsSquare, Mode=OneWay}" Content="1:1"
                          Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Square}"
                          ToolTip.Tip="{DynamicResource background.square}" AutomationProperties.Name="{DynamicResource background.square}" />
@@ -261,6 +255,12 @@
                          IsChecked="{Binding IsLandscape, Mode=OneWay}" Content="16:9"
                          Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Landscape}"
                          ToolTip.Tip="{DynamicResource background.landscape}" AutomationProperties.Name="{DynamicResource background.landscape}" />
+              <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
+                         IsChecked="{Binding IsAuto, Mode=OneWay}" Content="{DynamicResource background.auto}"
+                         Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Auto}" />
+              <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
+                         IsChecked="{Binding IsOriginal, Mode=OneWay}" Content="{DynamicResource background.original}"
+                         Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Original}" />
               <RadioButton Classes="segment" Theme="{StaticResource {x:Type ToggleButton}}" GroupName="BackdropCanvas"
                          IsChecked="{Binding IsCustom, Mode=OneWay}" Content="{DynamicResource background.custom}"
                          Command="{Binding SetCanvasCommand}" CommandParameter="{x:Static p:BackdropCanvas.Custom}" />
