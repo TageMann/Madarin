@@ -1097,6 +1097,19 @@ public sealed partial class DonutMenu : Control
             },
         };
         var opening = _open.Length == 0 ? 1 : Math.Clamp(_open.Average(), 0, 1);
+        if (GlassStyle && IsFlipping)
+        {
+            // The glass disc's shadow turns with it (narrowing as the disc stands on edge), never a ring left behind.
+            var width = PlateFlipWidth();
+            if (width < EdgeOn)
+                return;
+            var depth = 1 - 0.05 * FlipLift;
+            using (context.PushTransform(Matrix.CreateTranslation(-center.X, -center.Y) * Matrix.CreateScale(width * depth, depth) *
+                                         Matrix.CreateTranslation(center.X, center.Y)))
+            using (context.PushOpacity(opening))
+                context.DrawEllipse(brush, null, new Point(center.X, center.Y + 4), shadowRadius, shadowRadius);
+            return;
+        }
         using (context.PushOpacity(opening * ShadowCoverage))
             context.DrawEllipse(brush, null, new Point(center.X, center.Y + 4), shadowRadius, shadowRadius);
     }
