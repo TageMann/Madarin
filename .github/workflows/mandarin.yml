@@ -55,6 +55,26 @@ jobs:
           dotnet build Filee.slnx -c Release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      # The look first: Mandarin's screenshot tests alone, published to the looks branch within minutes, so the design
+      # can be reviewed before the whole suite has run.
+      - name: Mandarin look screenshots
+        continue-on-error: true
+        run: |
+          xvfb-run -a env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 dotnet test tests/Filee.App.Tests/Filee.App.Tests.csproj --no-build -c Release --filter "FullyQualifiedName~MandarinLookTests|FullyQualifiedName~RenderTests.Main_window_pages_render"
+
+      - name: Publish look screenshots
+        continue-on-error: true
+        shell: bash
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          out="$RUNNER_TEMP/looks"; mkdir -p "$out"
+          cp tests/Filee.App.Tests/bin/Release/net10.0/screenshots/*.png "$out"/ 2>/dev/null || true
+          cd "$out"
+          git init -q && git checkout -q -b looks && git add -A
+          git -c user.email=ci@mandarin -c user.name=CI commit -qm "Look screenshots from ${GITHUB_SHA::7}" --allow-empty
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" looks
+
       - name: Test
         id: test
         continue-on-error: true
