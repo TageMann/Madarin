@@ -816,7 +816,8 @@ public class DonutFlipTests
         Assert.NotEqual(DonutHitKind.SubSegment, donut.HitTest(sub).Kind);
         Assert.True(vm.IsBackFace); // only the drawing keeps the old ring
         Assert.True(donut.HasOldGroupRing);
-        donut.Advance(DonutMenu.FlipDuration);
+        // Mandarin's wheel is glass: its turn takes GlassFlipDuration.
+        donut.Advance(donut.GlassStyle ? DonutMenu.GlassFlipDuration : DonutMenu.FlipDuration);
         Assert.True(vm.IsBackFace);
         Assert.False(donut.HasOldGroupRing);
         window.Close();
