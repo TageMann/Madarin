@@ -301,7 +301,7 @@ public sealed class RadialController(
             if (change.Property == RadialWindow.IsVisibleProperty && !change.GetNewValue<bool>())
             {
                 glass?.Hide();
-                donut.ClearGlassDisc();
+                donut.ForgetGlassDisc();
                 RestoreNativeWindow();
             }
         };

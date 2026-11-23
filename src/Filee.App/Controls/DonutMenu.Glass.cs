@@ -80,8 +80,8 @@ public sealed partial class DonutMenu
         GlassDiscChanged?.Invoke(center, radius);
     }
 
-    /// <summary>The wheel is closed or hidden: no native glass under it.</summary>
-    internal void ClearGlassDisc() => ReportGlassDisc(Center, 0);
+    /// <summary>The window was hidden (and its glass with it): the next frame reports its disc afresh.</summary>
+    internal void ForgetGlassDisc() => _reportedDisc = (default, -1);
 
     /// <summary>
     /// macOS Reduce transparency: the glass is drawn solid (read when the app starts, see App). Slices, plate and pill

@@ -69,9 +69,18 @@ public partial class App : Application
                     types.Count == 0 ? "nothing" : string.Join(", ", types)));
         if (OperatingSystem.IsMacOS())
             CommandDrop.Install(log);
-        // Exceptions in UI event handlers end Filee; write them down first (they are not marked handled).
+        // Mandarin: an exception in a UI event handler is written down and the app carries on (it lives in the menu
+        // bar, and quitting loses the wheel). Only a burst of them (something broken for good) still ends it.
+        var recentFailures = new Queue<DateTime>();
         Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
             log.LogCritical(e.Exception, "Unhandled exception on the UI thread");
+            var now = DateTime.UtcNow;
+            recentFailures.Enqueue(now);
+            while (recentFailures.Count > 0 && now - recentFailures.Peek() > TimeSpan.FromSeconds(30))
+                recentFailures.Dequeue();
+            e.Handled = recentFailures.Count <= 5;
+        };
         var watchdog = new UiWatchdog(action => Dispatcher.UIThread.Post(action), AppHost.Get<ILogger<UiWatchdog>>());
         watchdog.Start();
         var store = AppHost.Get<UserDataStore>();

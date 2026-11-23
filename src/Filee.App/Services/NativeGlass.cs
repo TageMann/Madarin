@@ -8,8 +8,10 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Filee.Core.Settings;
 using Filee.Platform.MacOS;
+using Microsoft.Extensions.Logging;
 
 namespace Filee.App.Services;
 
@@ -32,8 +34,47 @@ internal sealed class NativeGlass
         };
     }
 
-    /// <summary>Settings > General > "Use macOS glass" (on unless the user turned it off).</summary>
-    public static bool Wanted => OperatingSystem.IsMacOS() && AppHost.TryGet<UserDataStore>()?.Settings.NativeGlass != false;
+    /// <summary>Settings > General > "Use macOS glass" (on unless the user turned it off), and not given up on.</summary>
+    public static bool Wanted => !_brokenThisSession && OperatingSystem.IsMacOS() && AppHost.TryGet<UserDataStore>()?.Settings.NativeGlass != false;
+
+    // Set when anything about the native glass failed: it is left off until Mandarin starts again, and nothing that
+    // failed can take the app down with it.
+    private static bool _brokenThisSession;
+
+    /// <summary>
+    /// Runs <paramref name="work"/> on the UI thread after the current frame (never inside a render pass), and turns
+    /// the native glass off for this session if it throws.
+    /// </summary>
+    private void Later(Action work) => Dispatcher.UIThread.Post(() =>
+    {
+        if (_brokenThisSession)
+            return;
+        try
+        {
+            work();
+        }
+        catch (Exception ex)
+        {
+            GiveUp(ex);
+        }
+    }, DispatcherPriority.Background);
+
+    private void GiveUp(Exception ex)
+    {
+        _brokenThisSession = true;
+        AppHost.TryGet<ILogger<NativeGlass>>()?.LogWarning(ex, "macOS glass failed; Mandarin's drawn glass is used until it restarts");
+        try
+        {
+            _backdrop?.Hide();
+            _backdrop?.Detach();
+        }
+        catch (Exception)
+        {
+            // already broken: nothing more to undo
+        }
+        _backdrop = null;
+        _window.Classes.Set(WindowClass, false);
+    }
 
     /// <summary>Native glass for <paramref name="window"/>, or null where there is none to have.</summary>
     public static NativeGlass? For(Window window) => Wanted ? new NativeGlass(window) : null;
@@ -64,7 +105,17 @@ internal sealed class NativeGlass
         backdrop.Show(rect.X, rect.Y, rect.Width, rect.Height, radius, _window.ClientSize.Height);
     }
 
-    public void Hide() => _backdrop?.Hide();
+    public void Hide()
+    {
+        try
+        {
+            _backdrop?.Hide();
+        }
+        catch (Exception ex)
+        {
+            GiveUp(ex);
+        }
+    }
 
     /// <summary>
     /// Keeps the glass under the disc <paramref name="donut"/> reports (the wheel's plate, the progress ring), and tells
@@ -72,7 +123,8 @@ internal sealed class NativeGlass
     /// </summary>
     public void UnderDisc(Controls.DonutMenu donut)
     {
-        donut.GlassDiscChanged += (center, radius) =>
+        // The wheel reports its disc while it draws: the native view is moved after the frame, never during it.
+        donut.GlassDiscChanged += (center, radius) => Later(() =>
         {
             if (radius <= 0 || !_window.IsVisible || donut.TranslatePoint(center, _window) is not { } at)
                 Hide();
@@ -83,7 +135,7 @@ internal sealed class NativeGlass
                 donut.NativeGlassBehind = IsActive;
                 donut.InvalidateVisual();
             }
-        };
+        });
     }
 
     /// <summary>
@@ -94,7 +146,7 @@ internal sealed class NativeGlass
     {
         if (For(window) is not { } glass)
             return null;
-        void Place()
+        void Place() => glass.Later(() =>
         {
             if (!surface.IsVisible || surface.TranslatePoint(new Point(0, 0), window) is not { } at)
             {
@@ -102,7 +154,7 @@ internal sealed class NativeGlass
                 return;
             }
             glass.Show(new Rect(at, surface.Bounds.Size), surface.CornerRadius.TopLeft);
-        }
+        });
         window.Opened += (_, _) => Place();
         surface.LayoutUpdated += (_, _) => Place();
         Place();

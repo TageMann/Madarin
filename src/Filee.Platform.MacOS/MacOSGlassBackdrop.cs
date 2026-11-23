@@ -82,8 +82,9 @@ public sealed class MacOSGlassBackdrop
             Send(view, Sel("release")); // the frame view holds it now
             return new MacOSGlassBackdrop(view, liquid != 0);
         }
-        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or MarshalDirectiveException)
+        catch (Exception)
         {
+            // Any failure leaves the window as it was: Mandarin's drawn glass stands alone.
             return null;
         }
     }
